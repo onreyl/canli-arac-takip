@@ -1,0 +1,26 @@
+services:
+  db:
+    # Sabit sürüm: "latest" zamanla değişir, değerlendirici aynı sürümü almalı.
+    # TimescaleDB 2.30.2 + PostgreSQL 17 (Karar 3: saklama/silme için hypertable + retention policy)
+    image: timescale/timescaledb:2.30.2-pg17
+    container_name: vehicle-tracking-db
+    environment:
+      # Değerler repodaki .env.example'dan kopyalanan, git'e girmeyen .env dosyasından gelir
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Konteyner silinse de veri kalsın
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      # Backend, DB gerçekten sorgu kabul edene kadar beklesin diye (Gün 12'de depends_on ile kullanılacak)
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  db-data:
