@@ -42,7 +42,17 @@ Tarih: 12-13 Ekim 2026. Ölçümler kısa sürelidir (dakikalar); uzun ölçüml
    - Örnek ölçümde 988 varlık (%12).
    - `trip.route_id` boş, `trip.trip_id` içinde `DeadRun` geçiyor, ör. `BOR:DeadRun:260907141040052_0`.
 
-7. **`position.bearing` sık sık tam 0.** Gerçek kuzey yönü mü, yoksa gönderilmemiş alan mı, belirsiz.
+7. **`position.bearing` çoğu zaman gönderilmiyor; "0" görünmesi yanıltıcı.**
+   - proto2'de gönderilmemiş sayı alanı varsayılan değer (0) olarak okunur. Gerçekten gönderilip gönderilmediğini `HasBearing` söyler.
+   - 14 Ekim 12:19 (TR) ölçümü, 8.049 konum: **4.082'sinde yön hiç gönderilmemiş**, sadece 35'i gerçekten 0 (tam kuzey).
+   - `HasX` kontrolü yapılmazsa haritada ~4.000 araç kuzeyi gösteren okla çizilirdi. Gönderilmeyen alanlar `null` saklanıyor.
+
+8. **Diğer opsiyonel alanlar da çoğunlukla eksik** (aynı ölçüm, 8.049 konum):
+   - `speed`: 7.857'sinde yok.
+   - `occupancy_status`: 4.455'inde yok.
+   - `current_status`: 193'ünde yok.
+   - `route_id`: 1.020'sinde yok, ve bunların **hepsi** DeadRun (`route_id` yalnızca boş seferlerde eksik).
+   - Konumu, araç kimliği ya da ölçüm zamanı eksik varlık: 0.
 
 ## Hacim ölçümü
 
