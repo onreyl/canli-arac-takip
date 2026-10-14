@@ -26,6 +26,12 @@ Console.CancelKeyPress += (_, e) =>
     cts.Cancel();
 };
 
+// İsteğe bağlı süre (dakika): "dotnet run -- 20" → 20 dk ölçüp kendiliğinden durur (uzun hacim ölçümü için)
+if (args.Length > 0 && int.TryParse(args[0], out int minutes))
+{
+    cts.CancelAfter(TimeSpan.FromMinutes(minutes));
+}
+
 // Turlar arası hafıza: her varlığın en son gördüğümüz ölçüm zamanı (varlık id → timestamp)
 // GERÇEK VERİ GÖZLEMİ: araç id (entity.Vehicle.Vehicle.Id) tekil DEĞİL.
 //   Feed'de ~8.600 varlık var ama sadece ~3.300 farklı araç. Aynı araç günde yaptığı her sefer için
@@ -36,6 +42,14 @@ Console.CancelKeyPress += (_, e) =>
 var lastSeen = new Dictionary<string, ulong>();
 ulong lastFeedTimestamp = 0;
 int poll = 0;
+
+// Hacim ölçümü için sayaçlar
+long retentionSeconds = (long)TimeSpan.FromHours(3).TotalSeconds;
+long toWriteAfterFirstPoll = 0;   // ilk tur hariç: ilk tur "başlangıç yüklemesi", saatlik hızı şişirir
+var sinceFirstPoll = new Stopwatch();
+var feedStateCounts = new Dictionary<string, int> { ["YENİ"] = 0, ["aynı"] = 0, ["GERİ"] = 0, ["HATA"] = 0 };
+long fetchMsTotal = 0, fetchMsMax = 0;
+FeedMessage? lastFeed = null;
 
 Console.WriteLine($"Her {interval.TotalSeconds} sn'de bir çekiliyor. Durdurmak için Ctrl+C.");
 
@@ -58,13 +72,19 @@ try
             feed = FeedMessage.Parser.ParseFrom(bytes);
             size = bytes.Length;
         }
-        catch (Exception ex) when (ex is HttpRequestException or Google.Protobuf.InvalidProtocolBufferException)
+        catch (Exception ex) when (ex is HttpRequestException or Google.Protobuf.InvalidProtocolBufferException
+                                   || (ex is TaskCanceledException && !cts.IsCancellationRequested))
         {
-            // Ağ hatası veya bozuk yanıt: bu turu atla, programı çökertme
+            // Ağ hatası, bozuk yanıt veya HttpClient zaman aşımı: bu turu atla, programı çökertme.
+            // Dikkat: HttpClient zaman aşımı TaskCanceledException fırlatır; ayırt etmezsek
+            // dıştaki "Ctrl+C" catch'i onu yakalar ve döngü sessizce biterdi.
+            feedStateCounts["HATA"]++;
             Console.WriteLine($"#{poll} HATA: {ex.Message}");
             continue;
         }
         sw.Stop();
+        fetchMsTotal += sw.ElapsedMilliseconds;
+        fetchMsMax = Math.Max(fetchMsMax, sw.ElapsedMilliseconds);
 
         // Feed bir önceki turdan daha yeni mi, aynı mı, yoksa geriye mi gitti?
         // GERÇEK VERİ GÖZLEMLERİ:
@@ -78,6 +98,9 @@ try
                          : feedTs == lastFeedTimestamp ? "aynı"
                          : "GERİ";
         lastFeedTimestamp = Math.Max(lastFeedTimestamp, feedTs);
+        feedStateCounts[feedState]++;
+        lastFeed = feed;
+        long nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         // Kaç varlık bu turda yeni bir konumla geldi? (ölçüm zamanı öncekinden büyükse yeni sayıyoruz)
         // Neden önemli: veritabanına sadece yeni konumları yazarsak satır sayısı ~9 kat azalıyor
@@ -85,6 +108,8 @@ try
         // Not: C#'ta gönderilmemiş alt nesne (Vehicle, Position, Trip) null gelir, string alan "" gelir.
         //   Bu feed'de her varlıkta Vehicle dolu olduğu için burada kontrol etmiyoruz; backend'de edeceğiz.
         int newPositions = 0;
+        // "Yazılacak" = Karar 1'in kuralı: yeni konum VE ölçüm zamanı saklama penceresinin (3 saat) içinde
+        int toWrite = 0;
         foreach (FeedEntity entity in feed.Entity)
         {
             ulong measuredAt = entity.Vehicle.Timestamp;
@@ -92,12 +117,25 @@ try
             {
                 newPositions++;
                 lastSeen[entity.Id] = measuredAt;
+                if ((long)measuredAt >= nowUnix - retentionSeconds)
+                {
+                    toWrite++;
+                }
             }
+        }
+
+        if (poll == 1)
+        {
+            sinceFirstPoll.Start();
+        }
+        else
+        {
+            toWriteAfterFirstPoll += toWrite;
         }
 
         Console.WriteLine(
             $"#{poll} {DateTime.Now:HH:mm:ss} | {sw.ElapsedMilliseconds} ms | {size / 1024} KB | " +
-            $"feed {feedState} | varlık {feed.Entity.Count} | yeni konum {newPositions}");
+            $"feed {feedState} | varlık {feed.Entity.Count} | yeni konum {newPositions} | yazılacak {toWrite}");
 
         // Anlık görüntü istatistiklerini sadece ilk turda yazdır (her turda ekranı doldurmasın)
         if (poll == 1)
@@ -114,6 +152,55 @@ catch (OperationCanceledException)
 
 Console.WriteLine();
 Console.WriteLine($"Toplam tur: {poll}, görülen farklı varlık: {lastSeen.Count}");
+PrintVolumeSummary();
+if (lastFeed is not null)
+{
+    PrintFreshness(lastFeed);
+}
+
+// Uzun ölçümün özeti: README'deki "saatlik ve 3 saatlik veri hacmi" ve "okuma döngüsü süresi" için
+void PrintVolumeSummary()
+{
+    double hours = sinceFirstPoll.Elapsed.TotalHours;
+    int successfulPolls = poll - feedStateCounts["HATA"];
+    Console.WriteLine();
+    Console.WriteLine($"Süre: {sinceFirstPoll.Elapsed:hh\\:mm\\:ss} (ilk turdan sonra)");
+    Console.WriteLine($"Feed durumları: YENİ {feedStateCounts["YENİ"]}, aynı {feedStateCounts["aynı"]}, " +
+                      $"GERİ {feedStateCounts["GERİ"]}, HATA {feedStateCounts["HATA"]}");
+    if (successfulPolls > 0)
+    {
+        Console.WriteLine($"Okuma süresi: ortalama {fetchMsTotal / successfulPolls} ms, en fazla {fetchMsMax} ms");
+    }
+    if (hours > 0)
+    {
+        double perHour = toWriteAfterFirstPoll / hours;
+        Console.WriteLine($"Yazılacak satır (ilk tur hariç): {toWriteAfterFirstPoll:N0}");
+        Console.WriteLine($"  → saatte ~{perHour:N0}, 3 saatte ~{perHour * 3:N0}");
+    }
+}
+
+// Her araç kimliğinin en yeni ölçümü ne kadar taze? (Karar 2'nin açık alt sorusu:
+// son ölçümü çok eski araçlar haritada "canlı" gibi gösterilmeli mi?)
+static void PrintFreshness(FeedMessage feed)
+{
+    long nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+    // Araç kimliği tekil değil (bkz. lastSeen yorumu): her araç için en yeni ölçümü alıyoruz
+    List<long> agesInMinutes = feed.Entity
+        .Where(e => e.Vehicle?.Vehicle is not null)
+        .GroupBy(e => e.Vehicle.Vehicle.Id)
+        .Select(g => (nowUnix - (long)g.Max(e => e.Vehicle.Timestamp)) / 60)
+        .ToList();
+
+    Console.WriteLine();
+    Console.WriteLine($"Farklı araç: {agesInMinutes.Count:N0}. Son ölçümün yaşı:");
+    Console.WriteLine($"  < 2 dk     : {agesInMinutes.Count(a => a < 2):N0}");
+    Console.WriteLine($"  2-5 dk     : {agesInMinutes.Count(a => a >= 2 && a < 5):N0}");
+    Console.WriteLine($"  5-15 dk    : {agesInMinutes.Count(a => a >= 5 && a < 15):N0}");
+    Console.WriteLine($"  15-60 dk   : {agesInMinutes.Count(a => a >= 15 && a < 60):N0}");
+    Console.WriteLine($"  1-3 saat   : {agesInMinutes.Count(a => a >= 60 && a < 180):N0}");
+    Console.WriteLine($"  > 3 saat   : {agesInMinutes.Count(a => a >= 180):N0}");
+}
 
 // Tek bir feed üzerinden istatistikler: burayı sen dolduracaksın
 static void PrintSnapshotStats(FeedMessage feed)
