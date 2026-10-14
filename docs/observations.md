@@ -44,6 +44,41 @@ Tarih: 12-13 Ekim 2026. Ölçümler kısa sürelidir (dakikalar); uzun ölçüml
 
 7. **`position.bearing` sık sık tam 0.** Gerçek kuzey yönü mü, yoksa gönderilmemiş alan mı, belirsiz.
 
+## Hacim ölçümü
+
+"Yazılacak satır": Karar 1'in kuralına göre yazılacak satırlar, yani daha önce görülmemiş `(entity_id, measured_at)` çiftleri ve ölçüm zamanı 3 saatten yeni olanlar. İlk tur başlangıç yüklemesi olduğu için hesaba katılmadı.
+
+| Ölçüm | Saat (TR / Oslo) | Süre | Yazılacak satır / saat | 3 saat |
+|---|---|---|---|---|
+| Öğleden sonra (kısa) | 15:53 / 14:53 | 40 sn | ~1,15 milyon | ~3,5 milyon |
+| Akşam | 21:03-21:23 / 20:03-20:23 | 20 dk | **~358 bin** | **~1,07 milyon** |
+| Sabah yoğun saati | — | — | *ölçülecek* | |
+
+- Hacim günün saatine göre ~3 kat değişiyor. Tasarım yoğun saate göre yapılmalı.
+- Öğleden sonra ölçümü sadece 40 sn sürdü; sabah yoğun saatinde 20 dk'lık ölçümle kesinleşecek.
+- Disk boyutu Gün 3'te gerçek tabloya yazılınca `pg_total_relation_size` ile ölçülecek.
+
+**Akşam ölçümünün ayrıntıları (401 tur, 20 dk):**
+- Feed durumları: YENİ 196 (%49), aynı 146 (%36), **GERİ 58 (%15)**, hata 0.
+- Okuma süresi (çekme + çözme): ortalama 251 ms, en fazla 1.651 ms. En kötü durumda bile 3 sn'lik aralığın yarısının altında.
+- "YENİ" bir feed'de ortalama ~600 yazılacak satır var.
+
+## Araçların tazeliği
+
+Her araç kimliğinin en yeni ölçümünün yaşı (akşam ölçümü sonu, 2.127 farklı araç):
+
+| Son ölçümün yaşı | Araç |
+|---|---|
+| < 2 dk | 907 |
+| 2-5 dk | 30 |
+| 5-15 dk | 59 |
+| 15-60 dk | 50 |
+| 1-3 saat | 224 |
+| > 3 saat | 857 |
+
+Dağılım iki tepeli. Aktif araçlar 2 dk'dan sık konum gönderiyor; geri kalanların büyük kısmı saatlerdir sessiz (seferi bitmiş, garajda). 2-15 dk aralığı çok az.
+Haritada "canlı" eşiği için doğal bir sınır var gibi: ~5 dk. Karar frontend tasarımında verilecek.
+
 ## Tasarıma etkileri (Gün 2'de karara bağlanacak)
 
 - Turlar arası takip ve tekrar kontrolü `entity.id` + ölçüm zamanı üzerinden yapılmalı.
