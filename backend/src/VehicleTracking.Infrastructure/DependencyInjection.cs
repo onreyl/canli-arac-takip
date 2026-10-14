@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using VehicleTracking.Application.History;
 using VehicleTracking.Application.Ingestion;
 using VehicleTracking.Infrastructure.Buffering;
 using VehicleTracking.Infrastructure.Feeds;
@@ -40,6 +41,7 @@ public static class DependencyInjection
             .UseSnakeCaseNamingConvention());
 
         services.AddSingleton<IPositionWriter, NpgsqlPositionWriter>();
+        services.AddScoped<IVehicleHistoryReader, EfVehicleHistoryReader>();   // DbContext scoped olduğu için
 
         services.AddHostedService<DatabaseInitializer>();
     }

@@ -22,15 +22,17 @@ builder.Services.AddSignalR()
 builder.Services.AddSingleton<LiveUpdateDispatcher>();
 builder.Services.AddSingleton<ILiveUpdatePublisher>(sp => sp.GetRequiredService<LiveUpdateDispatcher>());
 
-builder.Services.AddControllers();
+// REST'te de enum'lar metin olarak (SignalR ile tutarlı).
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// Swagger her ortamda açık: değerlendirici docker compose ile (Production) çalıştırıp Swagger'dan test edecek.
+// .NET'in kendi ürettiği OpenAPI belgesi (/openapi/v1.json) + Swagger arayüzü (/swagger).
+app.MapOpenApi();
+app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Vehicle Tracking API v1"));
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
