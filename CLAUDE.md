@@ -17,6 +17,8 @@ Teknik görüşmede kodun her satırını açıklamam ve canlı değişiklik yap
 
 ## İş bölümü
 
+- **Kodu Codex CLI yazar, Claude tarif eder ve kontrol eder** (Claude'un limitini korumak için). Akış: Claude görevi bir dosyaya yazar → `codex exec -m gpt-6-astra -c model_reasoning_effort=low -s workspace-write -C <repo> - < görev.md` → Claude diff'i okur, derler, test eder (gerekirse kasıtlı hata koyup testlerin yakaladığını doğrular) → küçük düzeltmeleri kendisi yapar → ben commit atarım. Codex'in kuralları `AGENTS.md`'de. Codex sandbox'ı NuGet'e erişemiyor: paketleri Claude önceden ekler. İki ajan aynı anda çalışmaz.
+
 - Kodu Claude yazar; satır satır anlatımı ChatGPT'ye yaptırıyorum. Claude'un açıklamaları kısa olsun ve **"neden"e** (projeye özel tasarım gerekçeleri, gerçek veri gözlemleri) odaklansın.
 - ChatGPT kodu yorumlarıyla birlikte görüyor. Bu yüzden ChatGPT'nin bilemeyeceği projeye özel "neden"leri (gerçek veri gözlemleri, tasarım kararları) koda yorum olarak yaz. "Ne yaptığını" anlatan yorum yazma. Keşif aracında (tools/) bol olabilir; backend/frontend'de sadece karar noktalarına koy, uzun gözlemler `docs/observations.md`'ye.
 - Yeni bir yapıyı anlatırken önce kodda izlenecek yolu ve tipleri göster (ör. `entity.Vehicle.Vehicle.Id` → `VehicleDescriptor`), sadece proto adlarıyla anlatma.
