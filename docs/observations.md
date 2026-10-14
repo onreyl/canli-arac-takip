@@ -62,11 +62,39 @@ Tarih: 12-13 Ekim 2026. Ölçümler kısa sürelidir (dakikalar); uzun ölçüml
 |---|---|---|---|---|
 | Öğleden sonra (kısa) | 15:53 / 14:53 | 40 sn | ~1,15 milyon | ~3,5 milyon |
 | Akşam | 21:03-21:23 / 20:03-20:23 | 20 dk | **~358 bin** | **~1,07 milyon** |
-| Sabah yoğun saati | — | — | *ölçülecek* | |
+| **Akşam yoğun saati (gerçek backend)** | 16:05-17:05 / 15:05-16:05 | 1 saat | **~949 bin** | **~2,85 milyon** |
 
-- Hacim günün saatine göre ~3 kat değişiyor. Tasarım yoğun saate göre yapılmalı.
-- Öğleden sonra ölçümü sadece 40 sn sürdü; sabah yoğun saatinde 20 dk'lık ölçümle kesinleşecek.
-- Disk boyutu Gün 3'te gerçek tabloya yazılınca `pg_total_relation_size` ile ölçülecek.
+- Hacim günün saatine göre ~3 kat değişiyor (akşam ~358 bin, yoğun saat ~949 bin satır/saat). Tasarım yoğun saate göre yapıldı.
+- Yoğun saat ölçümü gerçek backend'le yapıldı (14 Ekim, 70 dk kesintisiz çalışma). Satır sayısı, ölçüm zamanı 16:05-17:05 (TR) aralığındaki satırların DB'deki sayımıdır. Bu sırada canlı araç sayısı ~3.200'dü (öğlen ~2.150).
+- Aynı 70 dakikada: hata 0, kayıp parti 0, başarısız okuma 0, başarısız yazma 0.
+
+## Disk boyutu (gerçek veri, 14 Ekim)
+
+1.120.117 satır için `hypertable_detailed_size`:
+
+| Bölüm | Boyut |
+|---|---|
+| Tablo (satırlar) | 227 MB |
+| Index'ler (3 adet) | 208 MB |
+| **Toplam** | **435 MB → satır başına ~407 byte** |
+
+| | Satır | Disk |
+|---|---|---|
+| Yoğun saatte 1 saat | ~949 bin | **~390 MB** |
+| Yoğun saatte 3 saat (saklama penceresi) | ~2,85 milyon | **~1,15 GB** |
+| Akşam 3 saat | ~1,07 milyon | ~430 MB |
+
+**Neden satır başına 407 byte?** Diskin yarıya yakını index'ler. En büyük sütun `entity_id`: ortalama 60 byte, hem tabloda hem birincil anahtar index'inde tutuluyor. Diğer metin sütunları: `trip_id` 41, `stop_id` 15, `route_id` 14, `vehicle_id` 10 byte.
+
+Zaman olsaydı yapılabilecek iyileştirmeler (README "bilinen eksikler"):
+- **TimescaleDB sıkıştırması:** ör. 30 dk'dan eski chunk'lar sütun bazlı sıkıştırılır. Bu tür tekrarlı veride genelde çok büyük kazanç sağlar. Saklama 10 güne çıksaydı (~76 milyon satır, ~30 GB sıkıştırmasız) gerekli olurdu.
+- **`entity_id` gereksiz tekrar:** `trip_id + tarih + vehicle_id`'den oluşuyor. Ayrı saklamak yerine `(trip_id, service_date, vehicle_id)` ya da kısa bir hash kullanmak satırı ~60 byte küçültürdü.
+
+## Saklama / silme gerçekte çalışıyor
+
+- 14 Ekim 17:10 (TR) itibarıyla en eski chunk 14:00'te başlıyor; sabahki test verisi (12:xx) otomatik silinmiş.
+- Silme işi 71 kez çalışmış, 0 hata.
+- O anda 3 saatten eski 160 satır vardı: hepsi en eski chunk'ın (14:00-14:15) içinde, chunk tamamen süresini doldurunca silinecek. Beklenen davranış: chunk bütün olarak silindiği için bir chunk süresi (15 dk) kadar fazla kalabilir. API sorguları zaten 3 saate kırpıyor.
 
 **Akşam ölçümünün ayrıntıları (401 tur, 20 dk):**
 - Feed durumları: YENİ 196 (%49), aynı 146 (%36), **GERİ 58 (%15)**, hata 0.
