@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using VehicleTracking.Api.Health;
 using VehicleTracking.Api.Realtime;
 using VehicleTracking.Api.Workers;
 using VehicleTracking.Application;
@@ -9,6 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddSingleton<IngestionHealthCheck>();
+builder.Services.AddHealthChecks()
+    .AddInfrastructureHealthChecks()
+    .AddCheck<IngestionHealthCheck>("ingestion", tags: ["ready"]);
 
 // Kayıt sırası önemli: hosted service'ler bu sırayla başlar, TERS sırayla durur.
 // 1) DatabaseInitializer (AddInfrastructure içinde): DB hazır olmadan diğerleri başlamaz.
@@ -29,6 +36,9 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Başlangıç toleransı ilk health isteğinden değil, uygulama açılışından itibaren ölçülsün.
+_ = app.Services.GetRequiredService<IngestionHealthCheck>();
+
 // Swagger her ortamda açık: değerlendirici docker compose ile (Production) çalıştırıp Swagger'dan test edecek.
 // .NET'in kendi ürettiği OpenAPI belgesi (/openapi/v1.json) + Swagger arayüzü (/swagger).
 app.MapOpenApi();
@@ -37,6 +47,14 @@ app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Vehicle Tracking AP
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false,
+});
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = HealthResponseWriter.WriteAsync,
+});
 app.MapHub<VehiclesHub>("/hubs/vehicles");
 
 app.Run();

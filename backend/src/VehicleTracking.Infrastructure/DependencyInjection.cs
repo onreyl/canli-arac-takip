@@ -25,6 +25,14 @@ public static class DependencyInjection
         return services;
     }
 
+    /// <summary>Veritabanı hazırlık kontrolünü kaydeder.</summary>
+    public static IHealthChecksBuilder AddInfrastructureHealthChecks(this IHealthChecksBuilder builder)
+    {
+        // 3 sn sınır: DB kapalıyken Npgsql bağlantı denemesi varsayılan 15 sn bekler, /health isteği de o kadar takılırdı.
+        // Süre aşılırsa kontrol Unhealthy sayılır.
+        return builder.AddCheck<DatabaseHealthCheck>("database", tags: ["ready"], timeout: TimeSpan.FromSeconds(3));
+    }
+
     private static void AddPersistence(IServiceCollection services, IConfiguration configuration)
     {
         // Şifre repoda değil: geliştirmede user-secrets'tan, Docker'da ortam değişkeninden gelir.
