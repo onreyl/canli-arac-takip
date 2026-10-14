@@ -32,7 +32,8 @@ Makine mühendisi, 3 yıl kendi kendime yazılım. C#/.NET'te rahatım (Clean Ar
 
 - Gün 1: GTFS-RT ve Protocol Buffers'ı anla, Entur akışını çözen küçük konsol uygulaması, verinin gerçek davranışını gözlemle (README için).
 - Gün 2: Tasarım kararları (veritabanı/saklama, **veri kaybı senaryolarının tasarımı**), veri hacmi hesabı, mimari diyagram, Docker ile veritabanı.
-- Gün 3-5: Backend (veri çekme, toplu yazma, 3 saat saklama/temizlik, SignalR, REST, Swagger, sistem durumu). Akşamları paralel TS/React temeli.
+- Gün 3-4: Backend (veri çekme, toplu yazma, 3 saat saklama/temizlik, SignalR, REST, Swagger, sistem durumu). Geliştirme sırasında satır satır çalışma YOK; sadece "neden"leri oku. Akşamları paralel TS/React temeli.
+- Gün 5: Backend'i tek seferde çalışma günü (ChatGPT ile): önce akış, sonra dosyalar, en son satırlar.
 - Gün 6: Dayanıklılık senaryolarını gerçekten dene, README'ye yaz.
 - Gün 7-11: Frontend (harita, canlı bağlantı, araç detayı/geçmişi, sistem durumu, i18n, dört durum, mobil).
 - Gün 12: Docker Compose. Gün 13: README, ölçümler, video. Gün 14: Yedek.
