@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Npgsql;
 using VehicleTracking.Application.Ingestion;
 using VehicleTracking.Infrastructure.Feeds;
 using VehicleTracking.Infrastructure.Persistence;
@@ -24,9 +25,16 @@ public static class DependencyInjection
         string connectionString = configuration.GetConnectionString("Postgres")
             ?? throw new InvalidOperationException("ConnectionStrings:Postgres ayarı eksik.");
 
+        // Tek bir NpgsqlDataSource = tek bağlantı havuzu. EF Core (migration, okuma sorguları) ve
+        // toplu yazıcı (doğrudan Npgsql) aynı havuzu paylaşır.
+        NpgsqlDataSource dataSource = NpgsqlDataSource.Create(connectionString);
+        services.AddSingleton(dataSource);
+
         services.AddDbContext<VehicleTrackingDbContext>(options => options
-            .UseNpgsql(connectionString)
+            .UseNpgsql(dataSource)
             .UseSnakeCaseNamingConvention());
+
+        services.AddSingleton<IPositionWriter, NpgsqlPositionWriter>();
 
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
         services.AddHostedService<DatabaseInitializer>();
