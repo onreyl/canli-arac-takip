@@ -32,14 +32,22 @@ Makine mühendisi, 3 yıl kendi kendime yazılım. C#/.NET'te rahatım (Clean Ar
 
 ## Plan
 
-- Gün 1: GTFS-RT ve Protocol Buffers'ı anla, Entur akışını çözen küçük konsol uygulaması, verinin gerçek davranışını gözlemle (README için).
-- Gün 2: Tasarım kararları (veritabanı/saklama, **veri kaybı senaryolarının tasarımı**), veri hacmi hesabı, mimari diyagram, Docker ile veritabanı.
-- Gün 3-4: Backend (veri çekme, toplu yazma, 3 saat saklama/temizlik, SignalR, REST, Swagger, sistem durumu). Geliştirme sırasında satır satır çalışma YOK; sadece "neden"leri oku. Akşamları paralel TS/React temeli.
-- Gün 5: Backend'i tek seferde çalışma günü (ChatGPT ile): önce akış, sonra dosyalar, en son satırlar.
-- Gün 6: Dayanıklılık senaryolarını gerçekten dene, README'ye yaz.
-- Gün 7-11: Frontend (harita, canlı bağlantı, araç detayı/geçmişi, sistem durumu, i18n, dört durum, mobil).
-- Gün 12: Docker Compose. Gün 13: README, ölçümler, video. Gün 14: Yedek.
-- Artı puanlar sadece zaman kalırsa.
+| Gün | Tarih | Ben | Claude + Codex | Durum |
+|---|---|---|---|---|
+| 1-2 | 12-13 Ekim | GTFS-RT/protobuf, gözlem, 6 tasarım kararı | FeedExplorer, Docker DB, diyagram | ✅ |
+| 3 | 14 Ekim | — | Backend tamamı (çekme, yazma, saklama, SignalR, REST, Swagger, health), yoğun saat ölçümü | ✅ |
+| 3 akşam - 4 | 14-15 Ekim | **Backend çalışma** (önce akış, sonra dosyalar, en son satırlar) | Birim testleri | testler ✅ |
+| 5-7 | 16-18 Ekim | Frontend kararları + her gün biten parçayı okuma, canlı değişiklik provası | **Frontend** (harita, canlı bağlantı, detay/geçmiş, sistem durumu, i18n, dört durum, mobil) | |
+| 8 | 19 Ekim | Birlikte | Disk tamponu (Aşama 2) + dayanıklılık senaryolarını gerçekten deneme (Chrome "Slow 3G" dahil) | |
+| 9-10 | 20-21 Ekim | **Frontend çalışma** | Cila, mobil, eksikler | |
+| 11 | 22 Ekim | — | Docker Compose (backend + frontend + DB, tek komut) | |
+| 12 | 23 Ekim | — | README ve ölçümler | |
+| 13 | 24 Ekim | **Video** (10-15 dk, Türkçe) | — | |
+| 14 | 25 Ekim | Yedek, görüşme provası | — | |
+
+- Geliştirme sırasında satır satır çalışma YOK; sadece "neden"leri oku. Satır satır çalışma, kod oturduktan sonra.
+- Akşamları `notes/frontend-study.md` listesinden TS/React temeli.
+- Artı puanlar sadece zaman kalırsa (birim testleri ve health check yapıldı).
 
 ## Dokümandan kritik gereksinimler (özet)
 
