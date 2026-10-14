@@ -24,4 +24,9 @@
     <ProjectReference Include="..\VehicleTracking.Infrastructure\VehicleTracking.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Birim testleri internal sınıfları (ör. birleştirme mantığı, imleç kodlama) doğrudan test edebilsin. -->
+    <InternalsVisibleTo Include="VehicleTracking.UnitTests" />
+  </ItemGroup>
+
 </Project>
