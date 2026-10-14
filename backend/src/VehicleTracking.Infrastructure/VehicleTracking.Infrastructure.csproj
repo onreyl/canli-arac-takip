@@ -7,9 +7,21 @@
 
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.36.2" />
+    <PackageReference Include="Grpc.Tools" Version="2.84.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.13" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.13" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.13" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Access="Internal": üretilen protobuf sınıfları bu projenin dışından görünmez.
+         "Protobuf tipleri Infrastructure dışına çıkmaz" kuralını derleyici zorlar (Karar 5). -->
+    <Protobuf Include="Feeds\Protos\gtfs-realtime.proto" GrpcServices="None" Access="Internal" />
   </ItemGroup>
 
   <PropertyGroup>
