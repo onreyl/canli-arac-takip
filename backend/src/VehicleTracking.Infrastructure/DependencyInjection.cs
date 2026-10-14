@@ -17,6 +17,9 @@ public static class DependencyInjection
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention());
 
+        services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
+        services.AddHostedService<DatabaseInitializer>();
+
         return services;
     }
 }
