@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using VehicleTracking.Application.Ingestion;
+using VehicleTracking.Infrastructure.Buffering;
 using VehicleTracking.Infrastructure.Feeds;
 using VehicleTracking.Infrastructure.Persistence;
 
@@ -16,6 +17,10 @@ public static class DependencyInjection
     {
         AddPersistence(services, configuration);
         AddFeeds(services, configuration);
+
+        // Aşama 1: bellek tamponu. Aşama 2'de (Gün 6) sadece bu satır disk tamponuyla değişecek.
+        services.AddSingleton<IFeedBuffer, InMemoryFeedBuffer>();
+
         return services;
     }
 
@@ -36,7 +41,6 @@ public static class DependencyInjection
 
         services.AddSingleton<IPositionWriter, NpgsqlPositionWriter>();
 
-        services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
         services.AddHostedService<DatabaseInitializer>();
     }
 

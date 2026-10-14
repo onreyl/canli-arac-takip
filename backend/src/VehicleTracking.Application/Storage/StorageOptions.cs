@@ -1,4 +1,4 @@
-namespace VehicleTracking.Infrastructure.Persistence;
+namespace VehicleTracking.Application.Storage;
 
 /// <summary>
 /// appsettings.json'daki "Storage" bölümü. Doküman saklama süresinin koddan değil yapılandırmadan okunmasını istiyor;

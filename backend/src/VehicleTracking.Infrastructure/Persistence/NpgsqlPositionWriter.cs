@@ -79,7 +79,21 @@ internal sealed class NpgsqlPositionWriter(NpgsqlDataSource dataSource) : IPosit
         command.Parameters.Add(new NpgsqlParameter<short?[]>("occupancies", occupancies));
         command.Parameters.Add(new NpgsqlParameter<DateTimeOffset[]>("measured_ats", measuredAts));
 
-        // Etkilenen satır sayısı = gerçekten eklenenler (ON CONFLICT ile atlananlar sayılmaz).
-        return await command.ExecuteNonQueryAsync(cancellationToken);
+        try
+        {
+            // Etkilenen satır sayısı = gerçekten eklenenler (ON CONFLICT ile atlananlar sayılmaz).
+            return await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch (NpgsqlException ex) when (!IsPermanentDataError(ex))
+        {
+            // Bağlantı reddedildi, DB kapanıyor, zaman aşımı...: beklenip tekrar denenebilir.
+            throw new StorageUnavailableException("Veritabanına yazılamadı (geçici).", ex);
+        }
     }
+
+    // SQLSTATE 22xxx (veri hatası) ve 23xxx (kısıt ihlali): aynı veriyle kaç kez denense de başarısız olur.
+    // Bunları geçici sayarsak tek bir bozuk parti yazıcıyı sonsuz döngüye sokar, arkasındaki her şey birikir.
+    private static bool IsPermanentDataError(NpgsqlException ex) =>
+        ex is PostgresException pg && (pg.SqlState.StartsWith("22", StringComparison.Ordinal)
+                                    || pg.SqlState.StartsWith("23", StringComparison.Ordinal));
 }
