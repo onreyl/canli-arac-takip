@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Options;
 using VehicleTracking.Application.Ingestion;
+using VehicleTracking.Application.Live;
 
 namespace VehicleTracking.Api.Workers;
 
@@ -12,6 +13,8 @@ internal sealed partial class FeedPollingWorker(
     IFeedSource feedSource,
     FeedIngestor ingestor,
     IFeedBuffer buffer,
+    LiveVehicleState liveState,
+    ILiveUpdatePublisher publisher,
     IngestionMetrics metrics,
     TimeProvider timeProvider,
     IOptions<IngestionOptions> options,
@@ -56,12 +59,29 @@ internal sealed partial class FeedPollingWorker(
 
             metrics.RecordFetchSuccess(Stopwatch.GetElapsedTime(start));
 
-            IngestResult result = ingestor.Process(snapshot, timeProvider.GetUtcNow());
+            DateTimeOffset now = timeProvider.GetUtcNow();
+            IngestResult result = ingestor.Process(snapshot, now);
             if (result.IsStale || result.NewPositions.Count == 0)
             {
                 return;
             }
 
+            // Canlı kol (Karar 6): DB'den bağımsız, önce o. Publish beklemez; yavaş istemci bu döngüyü yavaşlatamaz.
+            // Ayrı try: canlı yayındaki bir hata asla aşağıdaki kalıcılık kolunu (tampona yazma) engellememeli.
+            try
+            {
+                LiveUpdate update = liveState.Apply(result.NewPositions, now);
+                if (!update.IsEmpty)
+                {
+                    publisher.Publish(update);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogLivePublishFailed(ex);
+            }
+
+            // Kalıcılık kolu: tampona; yazıcı işçisi DB'ye yazar.
             await buffer.EnqueueAsync(
                 new PositionBatch(Guid.NewGuid(), snapshot.GeneratedAt, result.NewPositions),
                 stoppingToken);
@@ -76,6 +96,9 @@ internal sealed partial class FeedPollingWorker(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Feed okunamadı: {Error}")]
     private partial void LogFetchFailed(string error);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Canlı yayın güncellemesi başarısız (kalıcılık etkilenmedi)")]
+    private partial void LogLivePublishFailed(Exception ex);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Çekme turunda beklenmeyen hata")]
     private partial void LogUnexpectedError(Exception ex);

@@ -1,5 +1,8 @@
+using System.Text.Json.Serialization;
+using VehicleTracking.Api.Realtime;
 using VehicleTracking.Api.Workers;
 using VehicleTracking.Application;
+using VehicleTracking.Application.Live;
 using VehicleTracking.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +15,12 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // 2) Yazıcı, 3) Çekici. Kapanışta önce çekici durur (tampona yeni parti gelmez), sonra yazıcı tamponu boşaltır.
 builder.Services.AddHostedService<PositionWriterWorker>();
 builder.Services.AddHostedService<FeedPollingWorker>();
+
+// Canlı yayın. Enum'lar sayı yerine metin ("StoppedAt"): frontend'de okunur, enum sırası değişse de bozulmaz.
+builder.Services.AddSignalR()
+    .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.AddSingleton<LiveUpdateDispatcher>();
+builder.Services.AddSingleton<ILiveUpdatePublisher>(sp => sp.GetRequiredService<LiveUpdateDispatcher>());
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -26,5 +35,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<VehiclesHub>("/hubs/vehicles");
 
 app.Run();

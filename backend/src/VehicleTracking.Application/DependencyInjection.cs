@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VehicleTracking.Application.Ingestion;
+using VehicleTracking.Application.Live;
 using VehicleTracking.Application.Storage;
 
 namespace VehicleTracking.Application;
@@ -17,6 +18,7 @@ public static class DependencyInjection
 
         services.AddSingleton<FeedIngestor>();
         services.AddSingleton<IngestionMetrics>();
+        services.AddSingleton<LiveVehicleState>();
 
         return services;
     }
