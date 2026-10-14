@@ -40,12 +40,12 @@ namespace VehicleTracking.Infrastructure.Persistence.Migrations
                         .HasColumnType("smallint")
                         .HasColumnName("current_status");
 
-                    b.Property<double>("Latitude")
-                        .HasColumnType("double precision")
+                    b.Property<float>("Latitude")
+                        .HasColumnType("real")
                         .HasColumnName("latitude");
 
-                    b.Property<double>("Longitude")
-                        .HasColumnType("double precision")
+                    b.Property<float>("Longitude")
+                        .HasColumnType("real")
                         .HasColumnName("longitude");
 
                     b.Property<short?>("Occupancy")

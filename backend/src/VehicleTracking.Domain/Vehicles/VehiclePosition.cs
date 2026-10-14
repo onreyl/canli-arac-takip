@@ -13,8 +13,10 @@ public sealed record VehiclePosition(
     string VehicleId,
     string? TripId,
     string? RouteId,
-    double Latitude,
-    double Longitude,
+    // float: kaynak (GTFS-RT) koordinatları float gönderiyor; double'a çevirmek bilgi eklemez, sadece
+    // dönüşüm gürültüsü (68.73694610595703) ve satır başına fazladan 8 byte ekler. Hassasiyet ~1 m.
+    float Latitude,
+    float Longitude,
     float? Bearing,
     float? Speed,
     string? StopId,
