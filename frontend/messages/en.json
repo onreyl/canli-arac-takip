@@ -8,7 +8,9 @@
     "loading": "Loading vehicles…",
     "empty": "There are no vehicles to display right now.",
     "disconnected": "Live connection lost. Showing last known positions.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "filteredEmpty": "No vehicles match the filter.",
+    "clearFilter": "Clear filter"
   },
   "Connection": {
     "connected": "Connected",
@@ -22,5 +24,13 @@
     "title": "Live vehicle map",
     "description": "Positions of public transport vehicles in Norway",
     "toggleAttribution": "Toggle map attribution"
+  },
+  "VehicleFilter": {
+    "title": "Filter",
+    "active": "Filter active",
+    "search": "Route or vehicle number",
+    "placeholder": "Search route or vehicle number…",
+    "includeStale": "Include stale vehicles",
+    "count": "Showing {shown} of {total} vehicles"
   }
 }

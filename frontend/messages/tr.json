@@ -8,7 +8,9 @@
     "loading": "Araçlar yükleniyor…",
     "empty": "Şu an gösterilecek araç yok.",
     "disconnected": "Canlı bağlantı koptu. Son bilinen konumlar gösteriliyor.",
-    "retry": "Yeniden dene"
+    "retry": "Yeniden dene",
+    "filteredEmpty": "Filtreye uyan araç yok.",
+    "clearFilter": "Filtreyi temizle"
   },
   "Connection": {
     "connected": "Bağlı",
@@ -22,5 +24,13 @@
     "title": "Canlı araç haritası",
     "description": "Norveç toplu taşıma araçlarının konumları",
     "toggleAttribution": "Harita kaynaklarını göster/gizle"
+  },
+  "VehicleFilter": {
+    "title": "Filtre",
+    "active": "Aktif filtre var",
+    "search": "Hat veya araç numarası",
+    "placeholder": "Hat veya araç numarası ara…",
+    "includeStale": "Eski araçları da göster",
+    "count": "{total} araçtan {shown} tanesi gösteriliyor"
   }
 }

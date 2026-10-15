@@ -5,21 +5,29 @@ import { useTranslations } from "next-intl";
 import { Map as MapLibreMap, setWorkerUrl, type GeoJSONSource } from "maplibre-gl";
 import type { FeatureCollection, Point } from "geojson";
 import { useLiveVehiclesStore } from "../store/liveVehiclesStore";
+import { isStale, matchesFilter, type VehicleFilter } from "../filter/vehicleFilter";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-// Karar 8: aktif araçların ölçümleri iki dakikadan sık; beş dakika sessizlik soluk gösterilir.
 // public/'e kopyalanan worker (bkz. scripts/copy-maplibre-worker.mjs): paketleyici bu dosyayı kendisi servis etmiyor.
 setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 
-const STALE_AFTER_MS = 5 * 60_000;
-const STALE_REFRESH_MS = 30_000;
 // Karar 1 ve 8: boş seferler gri, yolculu seferler mavi; eskilik yalnız opaklığı değiştirir.
 const ACTIVE_COLOR = "#2563eb";
 const DEAD_RUN_COLOR = "#6b7280";
 const ACTIVE_OPACITY = 0.9;
 const STALE_OPACITY = 0.3;
 
-export default function LiveMap() {
+export default function LiveMap({ filter, nowMs }: { filter: VehicleFilter; nowMs: number }) {
+  const filterRef = useRef(filter);
+  const nowRef = useRef(nowMs);
+  const scheduleRef = useRef<(() => void) | null>(null);
+
+  // Filtre değişince WebGL haritasını yeniden kurmak pahalıdır ve görünümü sıçratır.
+  useEffect(() => {
+    filterRef.current = filter;
+    nowRef.current = nowMs;
+    scheduleRef.current?.();
+  }, [filter, nowMs]);
   const container = useRef<HTMLDivElement>(null);
   const t = useTranslations("Map");
 
@@ -47,19 +55,21 @@ export default function LiveMap() {
       if (!source) return;
       const state = useLiveVehiclesStore.getState();
       const started = performance.now();
-      const now = Date.now();
+      const now = nowRef.current;
       const data: FeatureCollection<Point> = {
         type: "FeatureCollection",
-        features: Object.values(state.vehicles).map((vehicle) => ({
-          type: "Feature",
-          geometry: { type: "Point", coordinates: [vehicle.longitude, vehicle.latitude] },
-          properties: {
-            vehicleId: vehicle.vehicleId,
-            routeId: vehicle.routeId,
-            isDeadRun: vehicle.isDeadRun,
-            isStale: now - Date.parse(vehicle.measuredAt) > STALE_AFTER_MS,
-          },
-        })),
+        features: Object.values(state.vehicles)
+          .filter((vehicle) => matchesFilter(vehicle, filterRef.current, now))
+          .map((vehicle) => ({
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [vehicle.longitude, vehicle.latitude] },
+            properties: {
+              vehicleId: vehicle.vehicleId,
+              routeId: vehicle.routeId,
+              isDeadRun: vehicle.isDeadRun,
+              isStale: isStale(vehicle, now),
+            },
+          })),
       };
       source.setData(data);
       // Worker/GPU çizimi asenkrondur; bu ölçüm GeoJSON üretimi ve setData çağrısının CPU süresidir.
@@ -71,6 +81,8 @@ export default function LiveMap() {
     function schedule() {
       if (loaded && frame === undefined) frame = requestAnimationFrame(flush);
     }
+
+    scheduleRef.current = schedule;
 
     const unsubscribe = useLiveVehiclesStore.subscribe((state, previous) => {
       if (state.vehicles !== previous.vehicles || state.version !== previous.version) {
@@ -94,12 +106,11 @@ export default function LiveMap() {
       loaded = true;
       schedule();
     });
-    const interval = setInterval(schedule, STALE_REFRESH_MS);
 
     return () => {
       loaded = false;
       unsubscribe();
-      clearInterval(interval);
+      scheduleRef.current = null;
       if (frame !== undefined) cancelAnimationFrame(frame);
       map.remove();
     };
