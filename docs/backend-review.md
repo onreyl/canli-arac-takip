@@ -1,5 +1,22 @@
 # Backend — Zorunlu Maddelere Göre Eksik / Risk Listesi
 
+## Karar durumu (15 Ekim akşamı)
+
+| # | Karar | Durum |
+|---|---|---|
+| 1 | Docker Compose — yap | ✅ Yapıldı: backend + frontend Dockerfile, `docker compose up --build` tek komutla çalışıyor (.env gerekmez) |
+| 2 | Kapanış süresi — yap | ✅ Yapıldı: host 25 sn, compose `stop_grace_period: 30s`, boşaltma 20 sn; `docker compose restart backend` ile düzgün kapanış doğrulandı |
+| 3 | README senaryo açıklamaları | README'ye yaz (24-25 Ekim) |
+| 4 | Disk tamponu | **Yapılmıyor**; `docs/known-limitations.md` madde 1 |
+| 5 | Açılışta DB kapalı | README'ye yaz; `docs/known-limitations.md` madde 2 |
+| 6 | Silme gösterimi | ✅ Compose'a ayarlar eklendi (`RETENTION`, `CHUNK_INTERVAL`...); prosedür `docs/resilience-tests.md` Test 7 |
+| 7 | Silmenin kilitlememesi ölçümü | Öneri: şimdi yap (küçük) — onay bekliyor |
+| 8 | "Son 1 saatte yazılan" bellekte | Öneri: README'ye yaz |
+| 9 | Senaryoların denenmesi | Talimatlar `docs/resilience-tests.md`; denemeleri proje sahibi yapacak |
+| 10 | Yavaş istemci gerçek ağda | Test 6; README'ye yaz |
+| 11 | En fazla bekleme 30 sn | Öneri: şimdi yap (tek sabit, 10 sn) — onay bekliyor |
+| 12 | HTTPS yönlendirmesi | Öneri: şimdi yap (tek satır) — onay bekliyor |
+
 Tarih: 15 Ekim 2026. Kaynak: case dokümanı 3.1, 3.2, 3.3 ve 5. bölüm. **Bu listede kod değişikliği yapılmadı**; düzeltmeler onayla yapılacak.
 
 Öncelik: **P0** = teslimde eksik kalırsa doğrudan bir zorunlu maddeyi karşılamaz · **P1** = madde karşılanıyor ama bir
