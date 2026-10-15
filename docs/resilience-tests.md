@@ -88,12 +88,12 @@ O dakikalarda veri yoktur — **kaçınılmaz kayıp** (GTFS-RT geçmiş tutmaz)
    - Harita akmaya devam ediyor mu? (Canlı yayın DB'den bağımsız.)
    - Sistem durumu: `Bekleyen parti` artıyor, `Başarısız yazma` artıyor, `Kayıp parti` 0.
    - `/health` → `database` Unhealthy, HTTP 503; ama `http://localhost:5295/health/live` 200 (süreç ayakta).
-   - Backend logu: `DB'ye yazılamadı (...). X sonra tekrar denenecek; tamponda N parti bekliyor.` (bekleme 1→2→4…→30 sn)
+   - Backend logu: `DB'ye yazılamadı (...). X sonra tekrar denenecek; tamponda N parti bekliyor.` (bekleme 1→2→4→8→10 sn)
 4. Veritabanını başlat:
    ```powershell
    docker compose start db
    ```
-5. En fazla ~30 sn içinde `Bekleyen parti` 0'a inmeli.
+5. En fazla ~10 sn içinde `Bekleyen parti` 0'a inmeli.
 6. Dakika bazında satır sorgusu: kesinti dakikalarında **delik olmamalı** (sayılar normal seviyede).
 
 **Sonuç:** ……

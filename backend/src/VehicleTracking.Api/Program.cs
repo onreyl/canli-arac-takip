@@ -58,7 +58,12 @@ _ = app.Services.GetRequiredService<IngestionHealthCheck>();
 app.MapOpenApi();
 app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Vehicle Tracking API v1"));
 
-app.UseHttpsRedirection();
+// HTTPS yönlendirmesi sadece geliştirmede: konteynerde yalnızca HTTP (8080) dinleniyor; açık kalsaydı her açılışta
+// "https portu bulunamadı" uyarısı loglanıyordu. Gerçek kurulumda TLS önündeki ters vekilde (reverse proxy) sonlanır.
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors();
 app.UseAuthorization();
 app.MapControllers();

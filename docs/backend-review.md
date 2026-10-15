@@ -14,8 +14,8 @@
 | 8 | "Son 1 saatte yazılan" bellekte | Öneri: README'ye yaz |
 | 9 | Senaryoların denenmesi | Talimatlar `docs/resilience-tests.md`; denemeleri proje sahibi yapacak |
 | 10 | Yavaş istemci gerçek ağda | Test 6; README'ye yaz |
-| 11 | En fazla bekleme 30 sn | Öneri: şimdi yap (tek sabit, 10 sn) — onay bekliyor |
-| 12 | HTTPS yönlendirmesi | Öneri: şimdi yap (tek satır) — onay bekliyor |
+| 11 | En fazla bekleme 30 sn | ✅ Yapıldı: 10 sn |
+| 12 | HTTPS yönlendirmesi | ✅ Yapıldı: sadece Development'ta |
 
 Tarih: 15 Ekim 2026. Kaynak: case dokümanı 3.1, 3.2, 3.3 ve 5. bölüm. **Bu listede kod değişikliği yapılmadı**; düzeltmeler onayla yapılacak.
 

@@ -13,7 +13,9 @@ internal sealed partial class PositionWriterWorker(
     ILogger<PositionWriterWorker> logger) : BackgroundService
 {
     private static readonly TimeSpan InitialRetryDelay = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(30);
+    // 10 sn: DB döndükten sonra yazmaya başlama gecikmesi en fazla bu kadar olur (30 sn'de uzun bir kesintiden
+    // sonra veri yarım dakika bekleyebiliyordu). Kapalı bir DB'yi 10 sn'de bir denemek yük oluşturmaz.
+    private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(10);
 
     // Kapanışta tamponu boşaltmak için ayrılan süre (host'un varsayılan kapanış süresi 30 sn).
     private static readonly TimeSpan DrainTimeout = TimeSpan.FromSeconds(20);
@@ -72,7 +74,7 @@ internal sealed partial class PositionWriterWorker(
             }
             catch (StorageUnavailableException ex)
             {
-                // Geçici: aynı partiyi bekleyip tekrar dene. Bekleme 1 sn'den 30 sn'ye kadar katlanarak artar,
+                // Geçici: aynı partiyi bekleyip tekrar dene. Bekleme 1 sn'den 10 sn'ye kadar katlanarak artar,
                 // kapalı bir DB'yi saniyede bir dövmeyelim.
                 metrics.RecordWriteFailure();
                 LogWriteRetry(ex.InnerException?.Message ?? ex.Message, delay, buffer.Count);
