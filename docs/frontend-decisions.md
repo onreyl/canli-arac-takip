@@ -132,6 +132,21 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
   (`pageParam = { cursor, windowEnd }`). Render sırasında `Date.now()` kullanılmaz (React kuralı; ayrıca her render yeni bir istek
   demek olurdu). "Yenile" sorguyu sıfırlar → yeni bir "şimdi".
 
+## 11d. Sistem durumu sayfası (4. katman)
+
+- **Adres:** `/[dil]/status`. Haritadan ve haritaya bağlantı; her iki sayfada TR/EN dil değiştirici.
+- **Sunucu/istemci ayrımının örneği:** sayfa bir **Server Component**. İlk veriyi sunucuda `GET /api/system/status`'tan çeker,
+  böylece sayfa boş açılmaz. Sonra **Client Component** (`SystemStatusPanel`) TanStack Query ile 5 sn'de bir yeniler; ilk veri
+  `initialData` olarak verilir. C# karşılığı: sayfayı sunucuda dolu render etmek (Razor) + sonra tarayıcıda periyodik AJAX.
+- **İki API adresi:** tarayıcı backend'e `NEXT_PUBLIC_API_BASE_URL` (ör. `http://localhost:5295`) ile gider. Sunucu tarafı ise
+  Docker'da backend'e konteyner ağı üzerinden ulaşır (ör. `http://backend:8080`): `API_INTERNAL_BASE_URL`. Tanımlı değilse
+  tarayıcı adresi kullanılır (geliştirmede ikisi aynı).
+- **Gösterilenler:** son başarılı okuma (göreli + saat), son okuma süresi, son 1 saatte yazılan kayıt, başarısız okuma,
+  başarısız yazma, kayıp parti, bağlı istemci, bekleyen parti, canlı araç sayısı. Son okuma 30 sn'den eskiyse uyarı rengi
+  (backend health check'teki eşikle aynı); kayıp parti > 0 ise kırmızı.
+- **Dört durum:** yükleniyor (ilk veri yoksa iskelet), boş (henüz hiç başarılı okuma yok), hata (backend'e ulaşılamadı + yeniden
+  dene; elde son veri varsa o gösterilir ve "güncellenemedi" notu düşülür), başarılı.
+
 ## 12. Kurulumda karşılaşılan sorunlar ve çözümleri (görüşmede sorulabilir)
 
 - **Harita boş görünüyordu: MapLibre worker dosyası yüklenemiyordu.** MapLibre 6 haritayı ayrı bir web worker'da işler ve
