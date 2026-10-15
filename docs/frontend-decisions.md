@@ -93,3 +93,26 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
 - shadcn/ui bir kütüphane değil, projeye kopyalanan hazır bileşenler (`src/components/ui`). Sadece gerekenler eklenir
   (button, input, badge, card, sheet, switch, skeleton).
 - Stil Tailwind sınıflarıyla (`className="flex gap-2"`).
+
+## 12. Kurulumda karşılaşılan sorunlar ve çözümleri (görüşmede sorulabilir)
+
+- **Harita boş görünüyordu: MapLibre worker dosyası yüklenemiyordu.** MapLibre 6 haritayı ayrı bir web worker'da işler ve
+  `maplibre-gl-worker.mjs` dosyasını kendi paketinin yanından yüklemeye çalışır. Next.js'in paketleyicisi (Turbopack) bu dosyayı
+  çıktıya koymuyordu (404); üstelik dil yönlendirmemiz isteği `/tr/...`'ye çevirip HTML döndürüyordu.
+  Çözüm: `scripts/copy-maplibre-worker.mjs` dosyayı kurulumda ve her `dev`/`build` öncesinde `public/maplibre/`'e kopyalar,
+  kodda `setWorkerUrl("/maplibre/maplibre-gl-worker.mjs")` ile adres verilir. (`public/` altındaki noktalı dosya adları proxy'ye girmez.)
+- **Harita 0 yükseklikteydi.** MapLibre harita kutusuna kendi CSS'inde `position: relative` veriyor, bizim `absolute inset-0`
+  ayarımızı eziyordu. Çözüm: konumlandırma dış kutuda, harita iç kutuda.
+- **Geliştirmede "negotiation sırasında durduruldu" hatası.** React StrictMode geliştirmede bileşeni bilerek aç-kapa-aç yapar;
+  ilk SignalR bağlantısı kurulurken kapatılıyordu. Çözüm: bağlantıyı bir sonraki tick'e ertele, hemen kapatılan kopya hiç başlamaz.
+  (Üretimde StrictMode bu çift çalıştırmayı yapmaz.)
+- **"Koptu" ile "bağlanıyor" arasında gidip gelme.** SignalR'ın otomatik yeniden bağlanması 0/2/10/30 sn denemeden sonra vazgeçer;
+  biz de 5 sn'de bir yeniden deneriz. Bu arka plan denemeleri durumu "bağlanıyor"a çekmez, bağlantı gerçekten kurulana kadar
+  "koptu" kalır. Kullanıcının "yeniden dene" butonu ise "bağlanıyor" gösterir.
+
+## 13. Doğrulanan davranış (15 Ekim)
+
+- Açılışta snapshot ile ~2.300 araç; güncelleme işleme süresi (store + GeoJSON + setData) ~1-4 ms.
+- Backend durdurulunca: "yeniden bağlanıyor" → (~40 sn sonra) "koptu" şeridi; harita son bilinen konumlarla kalır.
+- Backend yeniden açılınca: dokunmadan "bağlı" ve yeni tam görüntü.
+- TR/EN ve 375 px mobilde rozet ve şerit düzgün.

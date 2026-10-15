@@ -117,6 +117,11 @@ Her araç kimliğinin en yeni ölçümünün yaşı (akşam ölçümü sonu, 2.1
 Dağılım iki tepeli. Aktif araçlar 2 dk'dan sık konum gönderiyor; geri kalanların büyük kısmı saatlerdir sessiz (seferi bitmiş, garajda). 2-15 dk aralığı çok az.
 Haritada "canlı" eşiği için doğal bir sınır var gibi: ~5 dk. Karar frontend tasarımında verilecek.
 
+## Haritada görülen: İsveç'teki araçlar
+
+Canlı haritada Stockholm, Göteborg ve Kopenhag civarında da araçlar görünüyor. Entur Norveç verisi ama sınır ötesine giden
+tren/otobüs hatlarının araçları seyir boyunca raporlanmaya devam ediyor (15 Ekim gözlemi).
+
 ## Tasarıma etkileri (Gün 2'de karara bağlanacak)
 
 - Turlar arası takip ve tekrar kontrolü `entity.id` + ölçüm zamanı üzerinden yapılmalı.
