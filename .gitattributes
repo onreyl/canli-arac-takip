@@ -1,0 +1,4 @@
+# Depoda ve çalışma kopyasında LF; Windows'ta her commit'te çıkan "LF will be replaced by CRLF" uyarılarını keser.
+* text=auto eol=lf
+*.png binary
+*.ico binary
