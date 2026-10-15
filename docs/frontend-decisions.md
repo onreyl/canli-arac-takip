@@ -1,0 +1,95 @@
+# Frontend Kararları
+
+Her karar: **ne seçtik**, **neden**, **C#/backend karşılığı** (anlatırken köprü olsun diye).
+Genel ilke: dokümanın istediği her özellik var, ama en sade haliyle. Fazladan özellik, animasyon ya da desen yok.
+
+## 1. Harita: MapLibre GL JS + OpenFreeMap altlık
+
+- **Neden:** MapLibre haritayı WebGL ile (ekran kartında) çizer. 3.000 aracı tek bir "katman" olarak verip tek seferde güncelleyebiliyoruz.
+  Doküman "binlerce araçta akıcı" diyor; yoğun saatte ~3.200 araç ölçtük.
+- **Neden Leaflet değil:** Leaflet'te her araç ayrı bir HTML elemanı olur; 3.000 elemanı birkaç saniyede bir güncellemek tarayıcıyı yorar.
+- **Altlık:** OpenFreeMap. OpenStreetMap verisinden üretilmiş ücretsiz vektör harita; API anahtarı gerektirmez, repoya gizli bilgi girmez.
+- **Araçlar nasıl çiziliyor:** tüm araçlar tek bir GeoJSON kaynağı + bir "circle" katmanı. Renk/opaklık veriye göre (aktif / eski / boş sefer) katman stilinde.
+
+## 2. Canlı veri istemcide nerede? (README sorusu)
+
+İki ayrı depo, çünkü iki farklı türde veri var:
+
+| Veri | Nerede | Neden | C# karşılığı |
+|---|---|---|---|
+| Canlı araçlar (SignalR'dan akan) | **Zustand** store: `aracId → araç`, sürüm, bağlantı durumu | Sürekli akan, uygulama boyunca yaşayan tek bir durum | Uygulama boyunca yaşayan **singleton** bir servis (bizdeki `LiveVehicleState` gibi) |
+| REST'ten istenince çekilen (geçmiş, sistem durumu, araç detayı) | **TanStack Query** önbelleği | Yükleniyor/hata/başarılı durumlarını, yeniden denemeyi, önbelleği hazır yönetir | `HttpClient` + bir önbellek + yeniden deneme politikası (Polly) |
+
+- **Neden Zustand:** dokümanın stack listesinde var, çok küçük, öğrenmesi kolay. Redux gibi tören yok.
+- **Performans:** SignalR'dan gelen her güncelleme önce store'a yazılır; harita store'u **React'ın yeniden çizimi olmadan** okur ve
+  MapLibre kaynağını saniyede en fazla birkaç kez toplu günceller. Böylece 3.000 aracın her değişikliği React bileşenlerini yeniden çizdirmez.
+
+## 3. SignalR bağlantısı
+
+- `@microsoft/signalr` istemcisi, `withAutomaticReconnect()` ile.
+- Bağlantı durumları: **bağlı / yeniden bağlanıyor / koptu** → store'da tutulur, ekranda rozet olarak görünür.
+- Sunucu bağlanınca ve her yeniden bağlanmada önce `snapshot` (tam görüntü) gönderir; istemci elindeki listeyi bununla **değiştirir**.
+  Sonra gelen `update` mesajlarında `upserts` eklenir/güncellenir, `removals` silinir. Böylece yeniden bağlanan istemci kayıpsız güncel duruma döner.
+- Otomatik yeniden bağlanma vazgeçerse (uzun kesinti), "koptu" gösterilir ve birkaç saniyede bir yeniden denenir.
+
+## 4. Sayfa düzeni
+
+- **Masaüstü:** tam ekran harita; solda arama/filtre; araç seçilince sağda detay paneli; üstte bağlantı rozeti.
+- **Mobil (375 px):** tam ekran harita; filtre açılır-kapanır; detay alttan açılan panel (shadcn `Sheet`).
+- **Sistem durumu:** ayrı sayfa (`/[dil]/status`).
+
+## 5. Adresler, dil, URL'de durum
+
+- Dil ön eki: `/tr/...`, `/en/...` (varsayılan `tr`). Kütüphane: **next-intl**. Tüm metinler `messages/tr.json` ve `messages/en.json`'da; kodda metin yok.
+- Filtre ve seçili araç URL'de: `?q=...&route=...&active=1&vehicle=...`.
+  - **Neden:** sayfa yenilendiğinde ya da bağlantı paylaşıldığında aynı ekran gelsin (doküman istiyor).
+  - URL tek doğru kaynak: filtre değişince URL güncellenir, ekran URL'i okur.
+
+## 6. Sunucu / istemci ayrımı (Next.js)
+
+Next.js'te bir bileşen ya **sunucuda** çalışır (HTML üretip gönderir) ya da `"use client"` ile **tarayıcıda** çalışır.
+
+- **Harita: tamamen istemcide.** WebGL ve WebSocket sadece tarayıcıda var. İlk görüntü SignalR `snapshot`'ından gelir;
+  sunucuda üretseydik 3.000 araçlık veri sayfa HTML'ine gömülür, sayfa ~400 KB şişerdi.
+- **Sistem durumu sayfası:** ilk veri **sunucuda** çekilir (sayfa boş açılmaz), sonra **istemcide** TanStack Query 5 sn'de bir yeniler.
+  Ayrımın küçük ve anlaşılır bir örneği.
+- **Sayfa dosyaları (`app/...`) ince:** sadece feature bileşenlerini yerleştirir; mantık feature klasörlerinde.
+
+## 7. Klasör yapısı (feature bazlı — eleme kriteri)
+
+```
+frontend/src/
+  app/[locale]/             → sayfalar ve layout (ince)
+  features/live-map/        → harita, filtre, canlı araç store'u, SignalR'ı store'a bağlayan hook
+  features/vehicle-detail/  → detay paneli, geçmiş listesi, haritada iz
+  features/system-status/   → sistem durumu sayfasının bileşenleri
+  shared/                   → API istemcisi, SignalR bağlantısı, zod şemaları, ortak UI parçaları
+  i18n/                     → next-intl ayarları
+messages/tr.json, en.json
+```
+
+- **Kural:** bir feature başka bir feature'ın iç dosyasını import etmez; ortak şey `shared/`'a gider.
+  (Backend'deki katman kuralının frontend karşılığı.)
+
+## 8. Eski araçlar ve boş seferler (gerçek veri gözlemi)
+
+- Araç tazeliği iki tepeli: aktif araçlar 2 dk'dan sık konum gönderiyor, gerisi saatlerdir sessiz (bkz. `docs/observations.md`).
+- **Son ölçümü 5 dk'dan eski araç soluk** çizilir; "sadece aktif araçlar" anahtarı (varsayılan açık) bunları gizler.
+- **DeadRun (boş sefer)** gri, detayda "boş sefer" etiketi.
+
+## 9. Gelen veriyi doğrulama: zod
+
+- REST ve SignalR'dan gelen JSON, kullanılmadan önce zod şemasıyla doğrulanır.
+- **Neden:** TypeScript tipleri sadece derleme zamanında var; sunucudan gelen veri çalışma zamanında beklenenden farklı olabilir.
+- **C# karşılığı:** FluentValidation + gelen DTO'yu doğrulamak.
+
+## 10. Dört durum (her ekranda)
+
+Her veri gösteren yerde: **yükleniyor** (iskelet/spinner), **boş** (ör. "bu aralıkta kayıt yok"), **hata** (mesaj + yeniden dene), **başarılı**.
+TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı haritada ise bağlantı durumundan.
+
+## 11. UI: Tailwind + shadcn/ui
+
+- shadcn/ui bir kütüphane değil, projeye kopyalanan hazır bileşenler (`src/components/ui`). Sadece gerekenler eklenir
+  (button, input, badge, card, sheet, switch, skeleton).
+- Stil Tailwind sınıflarıyla (`className="flex gap-2"`).

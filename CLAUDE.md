@@ -17,7 +17,7 @@ Teknik görüşmede kodun her satırını açıklamam ve canlı değişiklik yap
 
 ## İş bölümü
 
-- **Kodu Codex CLI yazar, Claude tarif eder ve kontrol eder** (Claude'un limitini korumak için). Akış: Claude görevi bir dosyaya yazar → `codex exec -m gpt-6-astra -c model_reasoning_effort=low -s workspace-write -C <repo> - < görev.md` → Claude diff'i okur, derler, test eder (gerekirse kasıtlı hata koyup testlerin yakaladığını doğrular) → küçük düzeltmeleri kendisi yapar → ben commit atarım. Codex'in kuralları `AGENTS.md`'de. Codex sandbox'ı NuGet'e erişemiyor: paketleri Claude önceden ekler. İki ajan aynı anda çalışmaz.
+- **Kodu Codex CLI yazar, Claude tarif eder ve kontrol eder** (Claude'un limitini korumak için). Akış: Claude görevi bir dosyaya yazar → `codex exec -m gpt-6-astra -c model_reasoning_effort=<low|medium> -s workspace-write -C <repo> - < görev.md` (model/efor işe göre: basit iş low, karmaşık iş medium) → Claude diff'i okur, derler, test eder (gerekirse kasıtlı hata koyup testlerin yakaladığını doğrular) → küçük düzeltmeleri kendisi yapar → ben commit atarım. Codex'in kuralları `AGENTS.md`'de. Codex sandbox'ı NuGet'e erişemiyor: paketleri Claude önceden ekler. İki ajan aynı anda çalışmaz.
 
 - Kodu Claude yazar; satır satır anlatımı ChatGPT'ye yaptırıyorum. Claude'un açıklamaları kısa olsun ve **"neden"e** (projeye özel tasarım gerekçeleri, gerçek veri gözlemleri) odaklansın.
 - ChatGPT kodu yorumlarıyla birlikte görüyor. Bu yüzden ChatGPT'nin bilemeyeceği projeye özel "neden"leri (gerçek veri gözlemleri, tasarım kararları) koda yorum olarak yaz. "Ne yaptığını" anlatan yorum yazma. Keşif aracında (tools/) bol olabilir; backend/frontend'de sadece karar noktalarına koy, uzun gözlemler `docs/observations.md`'ye.
@@ -25,6 +25,8 @@ Teknik görüşmede kodun her satırını açıklamam ve canlı değişiklik yap
 - Yeni kavramları Claude yazar; bildiğim şeylerin uygulamasını (LINQ, basit iş kuralları) küçük görevler olarak ben yazarım, Claude kontrol eder. Bir görevde 10 dakikadan fazla takılırsam yardım eder.
 - `notes/chatgpt-context.md` (gitignore'da) ChatGPT'ye yapıştırdığım bağlam dosyası: proje özeti, kodda izlenen yollar/tipler, gerçek veri gözlemleri, kararlar, açık sorular. Yeni bir gözlem ya da karar çıktığında Claude bu dosyayı günceller.
 - Frontend'de çoğunu Claude yazar; ben her parçadan sonra küçük bir canlı değişiklik provası yaparım.
+- **Frontend kararlarını Claude verir** (frontend bilmiyorum, seçenek tartışamam). Her karar gerekçesiyle, sade Türkçe ve C# karşılıklarıyla `docs/frontend-decisions.md`'ye yazılır; görüşmede oradan anlatacağım. Hedef: **istenen her özellik var, en sade haliyle** (fazladan özellik/desen yok).
+- Açıklamaları sohbete değil dosyalara yaz (CLAUDE.md, docs/, notes/); başka bir sohbette onlardan çalışıyorum. Sohbette sadece kısa durum + commit komutu.
 
 ## Ben
 
