@@ -53,7 +53,14 @@ internal sealed class LiveClientFeed : IDisposable
 
     public async Task<bool> WaitForWorkAsync()
     {
-        await _signal.Reader.ReadAsync(_cts.Token);
+        // İstemci ayrılınca Dispose kanalı kapatır; WaitToReadAsync o zaman false döner ve döngü sessizce biter.
+        // (ReadAsync kullanınca kapanış ChannelClosedException fırlatıyor, normal bir ayrılma uyarı olarak loglanıyordu.)
+        if (!await _signal.Reader.WaitToReadAsync(_cts.Token))
+        {
+            return false;
+        }
+
+        _signal.Reader.TryRead(out _);
         return true;
     }
 
