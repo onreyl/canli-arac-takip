@@ -3,7 +3,8 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { LocaleSwitcher } from "@/shared/ui/LocaleSwitcher";
 import { Button } from "@/components/ui/button";
 import { VehicleDetailPanel, useVehicleHistory, historyCoordinates, parseRange, detailToParams, type HistoryRange } from "@/features/vehicle-detail";
 import { ConnectionBadge } from "./ConnectionBadge";
@@ -26,6 +27,7 @@ export default function LiveMapScreen() {
 }
 
 function FilteredLiveMapScreen() {
+  const navigation = useTranslations("Navigation");
   const t = useTranslations("LiveMap");
   const retry = useLiveVehicleStream();
   const router = useRouter();
@@ -75,6 +77,10 @@ function FilteredLiveMapScreen() {
           </div>
         )}
         <div className="max-w-full"><ConnectionBadge /></div>
+        <div className="pointer-events-auto flex items-center gap-3 rounded-lg border bg-background/95 px-3 shadow-sm">
+          <Link href="/status" className="py-2 text-sm underline underline-offset-4">{navigation("status")}</Link>
+          <LocaleSwitcher />
+        </div>
         <VehicleFilterPanel filter={filter} urlKey={`${pathname}?${paramsKey}#${resetVersion}`} nowMs={nowMs} onChange={changeFilter} />
       </div>
       {(isLoading || (hasSnapshot && isEmpty && status !== "disconnected")) && (

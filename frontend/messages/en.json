@@ -66,7 +66,7 @@
     "historyError": "Could not load position history.",
     "retry": "Retry",
     "emptyHistory": "No records in this range.",
-    "time": "Time",
+    "time": "Time (Oslo)",
     "speed": "Speed (km/h)",
     "missingSpeed": "—",
     "loadedCount": "{count} records loaded",
@@ -87,5 +87,32 @@
       "NoDataAvailable": "No information",
       "NotBoardable": "Not boardable"
     }
+  },
+  "Navigation": {
+    "status": "System status",
+    "backToMap": "Back to map",
+    "language": "Language",
+    "tr": "TR",
+    "en": "EN"
+  },
+  "SystemStatus": {
+    "title": "System status",
+    "loading": "Loading system status…",
+    "empty": "No successful fetch yet.",
+    "error": "Could not reach the backend. Retrying automatically.",
+    "updateError": "Could not update system status. Showing last known data.",
+    "retry": "Retry",
+    "unknown": "No information",
+    "stale": "The last successful fetch was over 30 seconds ago.",
+    "lastSuccessfulFetchAt": "Last successful fetch (Oslo time)",
+    "lastFetchDurationMs": "Last fetch duration",
+    "milliseconds": "{value} ms",
+    "writtenLastHour": "Records written in the last hour",
+    "failedFetchCount": "Failed fetches",
+    "failedWriteCount": "Failed writes",
+    "droppedBatchCount": "Dropped batches",
+    "connectedClients": "Connected clients",
+    "pendingBatches": "Pending batches",
+    "liveVehicles": "Live vehicles"
   }
 }

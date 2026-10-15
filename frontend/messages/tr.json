@@ -66,7 +66,7 @@
     "historyError": "Konum geçmişi yüklenemedi.",
     "retry": "Tekrar dene",
     "emptyHistory": "Bu aralıkta kayıt yok.",
-    "time": "Saat",
+    "time": "Saat (Oslo)",
     "speed": "Hız (km/sa)",
     "missingSpeed": "—",
     "loadedCount": "{count} kayıt yüklendi",
@@ -87,5 +87,32 @@
       "NoDataAvailable": "Bilgi yok",
       "NotBoardable": "Biniş yapılamaz"
     }
+  },
+  "Navigation": {
+    "status": "Sistem durumu",
+    "backToMap": "Haritaya dön",
+    "language": "Dil",
+    "tr": "TR",
+    "en": "EN"
+  },
+  "SystemStatus": {
+    "title": "Sistem durumu",
+    "loading": "Sistem durumu yükleniyor…",
+    "empty": "Henüz başarılı bir okuma yok.",
+    "error": "Backend'e ulaşılamadı. Otomatik olarak yeniden deneniyor.",
+    "updateError": "Sistem durumu güncellenemedi. Son bilinen veriler gösteriliyor.",
+    "retry": "Yeniden dene",
+    "unknown": "Bilgi yok",
+    "stale": "Son başarılı okuma 30 saniyeden eski.",
+    "lastSuccessfulFetchAt": "Son başarılı okuma (Oslo saati)",
+    "lastFetchDurationMs": "Son okuma süresi",
+    "milliseconds": "{value} ms",
+    "writtenLastHour": "Son 1 saatte yazılan kayıt",
+    "failedFetchCount": "Başarısız okuma",
+    "failedWriteCount": "Başarısız yazma",
+    "droppedBatchCount": "Kayıp parti",
+    "connectedClients": "Bağlı istemci",
+    "pendingBatches": "Bekleyen parti",
+    "liveVehicles": "Canlı araç"
   }
 }

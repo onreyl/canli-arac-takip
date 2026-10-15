@@ -9,5 +9,8 @@ export default getRequestConfig(async ({ locale: override }) => {
   return {
     locale,
     messages: (await import(`../../messages/${locale}.json`)).default,
+    // Tüm saatler tek bir dilimde: verinin ve senaryodaki ulaşım otoritesinin yerel saati (Oslo). Tek yerde tanımlı olunca
+    // sunucuda üretilen HTML ile tarayıcıdaki gösterim aynı olur (aksi halde hydration uyuşmazlığı ve farklı ekranlarda farklı saat).
+    timeZone: "Europe/Oslo",
   };
 });
