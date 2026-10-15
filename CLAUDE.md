@@ -27,13 +27,47 @@ Teknik görüşmede kodun her satırını açıklamam ve canlı değişiklik yap
 - Frontend'de çoğunu Claude yazar; ben her parçadan sonra küçük bir canlı değişiklik provası yaparım.
 - **Frontend kararlarını Claude verir** (frontend bilmiyorum, seçenek tartışamam). Her karar gerekçesiyle, sade Türkçe ve C# karşılıklarıyla `docs/frontend-decisions.md`'ye yazılır; görüşmede oradan anlatacağım. Hedef: **istenen her özellik var, en sade haliyle** (fazladan özellik/desen yok).
 - Açıklamaları sohbete değil dosyalara yaz (CLAUDE.md, docs/, notes/); başka bir sohbette onlardan çalışıyorum. Sohbette sadece kısa durum.
-- Frontend katmanları arasında onay bekleme; bir katman bitip doğrulanınca commit/push at ve sıradakine geç. Gerçekten benim vermem gereken bir karar (kapsam, takvim) çıkarsa sor.
+- ~~Frontend katmanları arasında onay bekleme~~ → 15 Ekim itibarıyla geçersiz: frontend'e ben söyleyene kadar dokunma; backend düzeltmeleri de benim onayımla (bkz. "Güncel öncelikler").
 
 ## Ben
 
 Makine mühendisi, 3 yıl kendi kendime yazılım. C#/.NET'te rahatım (Clean Architecture, CQRS + MediatR, Result pattern, FluentValidation + pipeline behavior, Repository + UnitOfWork + EF Core, domain event). React'ın temellerine baktım; Next.js, TypeScript ve Docker'da yeniyim.
 
-## Plan
+## Güncel öncelikler (ekip lideriyle görüşme sonrası, 15 Ekim) — BU BÖLÜM AŞAĞIDAKİ ESKİ PLANIN ÖNÜNDEDİR
+
+Ekip liderinin cevabı (özet):
+- Önceliklendirme kararı bana bırakıldı; bu da değerlendirmenin bir parçası.
+- Eksik kalan kısımlar gerekçeleriyle README'de belirtilmeli.
+- Pozisyon full stack; backend ve frontend mimarisi ikisi de eleme kriteri.
+- Frontend görsel olarak sade olabilir, ama zorunlu ekranlar canlı veriyle çalışmalı ve frontend doğru kurgulanmış olmalı.
+
+Plan:
+- **15-17 Ekim:** Backend'i anlamak (ben ayrıca çalışıyorum). Claude backend'i dokümandaki zorunlu maddelerle karşılaştırıp
+  eksik/riskli yerleri listeler (`docs/backend-review.md`); **düzeltmeleri sadece benim onayımla yapar.**
+- **18-23 Ekim:** Frontend — sadece zorunlu ekranlar, sade görünüm ama düzgün mimari (feature bazlı klasörler, sunucu verisi
+  TanStack Query, canlı veri Zustand).
+- **24-25 Ekim:** README ve video.
+- **26 Ekim:** Teslim.
+- **Artı puanlar** (uyarılar, sefer takibi, testler vb.) kapsam dışı; README'de "bilinen eksikler" olarak gerekçeleriyle yazılacak.
+  (Not: birim testleri ve health check zaten yazıldı; silinmeyecek, README'de "yapılanlar" olarak geçer.)
+
+**Frontend'e ben söyleyene kadar dokunma** (yeni özellik, düzeltme, refactor dahil).
+Not: 15 Ekim'de frontend'in ilk sürümü zaten yazıldı ve GitHub'da (4 katman, bkz. `docs/frontend-decisions.md`). 18-23 Ekim'de
+bunun üzerinden mi gidileceği, benim kararım.
+
+### Frontend zorunlu listesi
+
+1. Canlı harita: açılışta güncel durum, sonra canlı güncellemeler, binlerce araçta donmadan
+2. Bağlantı durumu (bağlı / yeniden bağlanıyor / koptu) ve otomatik yeniden bağlanma
+3. Hat veya araç numarasına göre filtre, filtre URL'de saklanacak
+4. Araca tıklayınca canlı güncellenen detay paneli
+5. Seçilen araç için saat aralığına göre geçmiş: sunucu taraflı sayfalı liste ve haritada iz
+6. Periyodik güncellenen sistem durumu paneli
+7. Her ekranda yükleniyor / boş / hata / başarılı durumları
+8. Türkçe ve İngilizce (next-intl), koda gömülü metin yok
+9. 375px mobil genişlikte kullanılabilir
+
+## Eski plan (14 Ekim; yukarıdaki öncelikler geçerli)
 
 | Gün | Tarih | Ben | Claude + Codex | Durum |
 |---|---|---|---|---|
