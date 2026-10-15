@@ -10,7 +10,7 @@
 | 4 | Disk tamponu | **Yapılmıyor**; `docs/known-limitations.md` madde 1 |
 | 5 | Açılışta DB kapalı | README'ye yaz; `docs/known-limitations.md` madde 2 |
 | 6 | Silme gösterimi | ✅ Compose'a ayarlar eklendi (`RETENTION`, `CHUNK_INTERVAL`...); prosedür `docs/resilience-tests.md` Test 7 |
-| 7 | Silmenin kilitlememesi ölçümü | Öneri: şimdi yap (küçük) — onay bekliyor |
+| 7 | Silmenin kilitlememesi ölçümü | ✅ Yapıldı: `/api/system/status`'a `lastWriteDurationMs` ve `maxWriteDurationLastHourMs`; Test 7 sırasında bakılacak (frontend'de gösterim yok, onay gerekir) |
 | 8 | "Son 1 saatte yazılan" bellekte | Öneri: README'ye yaz |
 | 9 | Senaryoların denenmesi | Talimatlar `docs/resilience-tests.md`; denemeleri proje sahibi yapacak |
 | 10 | Yavaş istemci gerçek ağda | Test 6; README'ye yaz |

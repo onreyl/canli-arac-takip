@@ -172,6 +172,9 @@ kaçınılmaz boşluk; açılınca feed her aracın son konumunu verir.
    - `en_eski` ile `simdi` arası ~5-6 dk olmalı (bir chunk süresi kadar fazlası normal).
    - `total_runs` artıyor, `total_failures` 0.
    - Bu sırada sistem durumu ve harita normal (silme yazmayı kilitlemiyor).
+   - **Kanıt (yazma süresi):** `Invoke-RestMethod http://localhost:5295/api/system/status` → `lastWriteDurationMs` (son yazma)
+     ve `maxWriteDurationLastHourMs` (son 1 saatteki en uzun). Normalde son yazma ~10-50 ms. Silme işi her 30 sn'de çalışırken
+     birkaç kez bak: son yazma süresi normal seviyede kalmalı. (En uzun süre genelde açılıştaki ilk büyük partidir, ~100-500 ms.)
 4. Normale dön:
    ```powershell
    Remove-Item Env:RETENTION, Env:CHUNK_INTERVAL, Env:RETENTION_CHECK_INTERVAL
