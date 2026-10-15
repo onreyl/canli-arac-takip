@@ -109,6 +109,24 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
 - **Yeni boş durum:** araç var ama filtreye uyan yok → "Filtreye uyan araç yok" + "Filtreyi temizle".
 - **Mobil:** sadece "Filtre" butonu; basınca panel açılır. Aktif bir filtre varsa butonda nokta.
 
+## 11c. Araç detayı, geçmiş ve iz (3. katman)
+
+- **Seçim URL'de:** haritada araca tıklayınca `?vehicle=<id>` eklenir (diğer parametreler korunur), panel kapanınca kalkar.
+  Paylaşılan link aynı aracı açık getirir; açılışta o araca bir kez yaklaşılır.
+- **Canlı bilgiler Zustand store'dan:** hat, sefer, durum, doluluk, son güncelleme ("12 sn önce"), boş sefer / eski etiketi.
+  Panel açıkken araç güncellendikçe kendiliğinden değişir (doküman istiyor). Araç canlı durumda yoksa "şu an canlı takipte değil".
+- **Geçmiş REST'ten, TanStack Query ile:** `GET /api/vehicles/{id}/history`, imleçli sayfalama → `useInfiniteQuery`,
+  "daha fazla yükle" butonu. C# karşılığı: sayfalı bir HTTP çağrısı + önbellek.
+- **Zaman aralığı:** hazır seçenekler — son 15 dk, 30 dk, 1 saat, 3 saat (URL'de `range=15m|30m|1h|3h`, varsayılan 1h).
+  Bilinçli sadeleştirme: serbest başlangıç/bitiş seçici yerine "şimdiden geriye" aralıklar; saklama penceresi zaten 3 saat.
+- **İz haritada:** yüklenen geçmiş noktaları zaman sırasına göre çizgi olarak çizilir (sunucu en yeniden eskiye verir, biz çeviririz).
+  Daha fazla sayfa yüklendikçe iz uzar. Seçili araç haritada belirgin (büyük, kenarlıklı) gösterilir.
+- **Aynı veri, tek sorgu:** geçmişi hem panel (liste) hem harita (iz) kullanır. İkisi de aynı hook'u aynı anahtarla çağırır;
+  TanStack Query isteği bir kez atar, ikisine aynı önbelleği verir. Aralık URL'de olduğu için ikisi aynı aralığı görür.
+- **Feature'lar arası kural (güncelleme):** bir feature başka bir feature'ı sadece onun `index.ts`'i (dışa açık API) üzerinden
+  kullanır, iç dosyalarına uzanmaz. C# karşılığı: başka bir projenin sadece `public` arayüzünü kullanmak, `internal`'ına değil.
+- **Masaüstü:** sağda sabit genişlikte panel. **Mobil:** alttan açılan panel (shadcn `Sheet`), harita üstte görünür kalır.
+
 ## 12. Kurulumda karşılaşılan sorunlar ve çözümleri (görüşmede sorulabilir)
 
 - **Harita boş görünüyordu: MapLibre worker dosyası yüklenemiyordu.** MapLibre 6 haritayı ayrı bir web worker'da işler ve
