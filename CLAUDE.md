@@ -40,7 +40,7 @@ Makine mühendisi, 3 yıl kendi kendime yazılım. C#/.NET'te rahatım (Clean Ar
 | 1-2 | 12-13 Ekim | GTFS-RT/protobuf, gözlem, 6 tasarım kararı | FeedExplorer, Docker DB, diyagram | ✅ |
 | 3 | 14 Ekim | — | Backend tamamı (çekme, yazma, saklama, SignalR, REST, Swagger, health), yoğun saat ölçümü | ✅ |
 | 3 akşam - 4 | 14-15 Ekim | **Backend çalışma** (önce akış, sonra dosyalar, en son satırlar) | Birim testleri | testler ✅ |
-| 5-7 | 16-18 Ekim | Frontend kararları + her gün biten parçayı okuma, canlı değişiklik provası | **Frontend** (harita, canlı bağlantı, detay/geçmiş, sistem durumu, i18n, dört durum, mobil) | |
+| 5-7 | 16-18 Ekim | Frontend kararları + her gün biten parçayı okuma, canlı değişiklik provası | **Frontend** (harita, canlı bağlantı, detay/geçmiş, sistem durumu, i18n, dört durum, mobil) | ✅ 15 Ekim'de 4 katman bitti (bkz. docs/frontend-decisions.md); mobil detay paneli ve durum sayfasının canlı yenilemesi görsel olarak tekrar kontrol edilecek |
 | 8 | 19 Ekim | Birlikte | Disk tamponu (Aşama 2) + dayanıklılık senaryolarını gerçekten deneme (Chrome "Slow 3G" dahil) | |
 | 9-10 | 20-21 Ekim | **Frontend çalışma** | Cila, mobil, eksikler | |
 | 11 | 22 Ekim | — | Docker Compose (backend + frontend + DB, tek komut) | |
