@@ -122,6 +122,14 @@ Haritada "canlı" eşiği için doğal bir sınır var gibi: ~5 dk. Karar fronte
 Canlı haritada Stockholm, Göteborg ve Kopenhag civarında da araçlar görünüyor. Entur Norveç verisi ama sınır ötesine giden
 tren/otobüs hatlarının araçları seyir boyunca raporlanmaya devam ediyor (15 Ekim gözlemi).
 
+## Hangi operatörler var? (15 Ekim)
+
+Canlı durumdaki 2.309 aracın hat kimliği önekine göre dağılımı: TRO 315, AKT 299, NOR 293, BRA 219, ATB 217, KOL 185,
+MOR 125, OST 120, (boş sefer) 107, FIN 105, VKT 90, VYG 68, VYX 52, TEL 52, VYB 30, FLT 13, GOA 10, NBU 9.
+
+**Oslo'nun Ruter'i (RUT) ve Bergen'in Skyss'i (SKY) bu akışta yok.** Bu yüzden Oslo ve Bergen şehir içi seyrek; oradaki noktalar
+çevre operatörlerden (Brakar, Østfold vb.) ve trenlerden geliyor. Bizim tarafımızda bir filtreleme yok, kaynak bunları göndermiyor.
+
 ## Tasarıma etkileri (Gün 2'de karara bağlanacak)
 
 - Turlar arası takip ve tekrar kontrolü `entity.id` + ölçüm zamanı üzerinden yapılmalı.

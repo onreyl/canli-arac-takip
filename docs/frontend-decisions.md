@@ -94,6 +94,21 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
   (button, input, badge, card, sheet, switch, skeleton).
 - Stil Tailwind sınıflarıyla (`className="flex gap-2"`).
 
+## 11b. Arama ve filtre (2. katman)
+
+- **Tek arama kutusu:** araç numarası, kısa hat adı (`RUT:Line:31` → `31`) ya da tam hat kimliği içinde arar; harf büyüklüğü ve
+  baştaki/sondaki boşluk önemsiz. Boş seferlerin hattı olmadığından sadece araç numarasıyla bulunurlar.
+- **"Eski araçları da göster" anahtarı:** varsayılan kapalı (sadece aktif araçlar), açıkken URL'de `all=1`.
+- **URL tek doğru kaynak:** `?q=...&all=1`. Yazarken her tuşta URL değişmesin diye kutu kendi yerel durumunu tutar ve 300 ms sonra
+  URL'e yazar (debounce); geri/ileri ya da paylaşılan link gelince kutu URL'i yansıtır. `router.replace` kullanılır: her harf
+  tarayıcı geçmişine girmesin.
+- **Eşleştirme saf fonksiyon** (`features/live-map/filter/vehicleFilter.ts`): React bilmez; harita da sonuç sayısı da aynı
+  fonksiyonu kullanır, ikisi asla tutarsız olmaz. C# karşılığı: static, yan etkisiz bir yardımcı sınıf.
+- **Filtre değişince harita yeniden kurulmaz:** filtre bir `ref`'te tutulur, sadece veri yeniden üretilir. Haritayı yeniden
+  oluşturmak pahalı olurdu ve görünüm sıçrardı.
+- **Yeni boş durum:** araç var ama filtreye uyan yok → "Filtreye uyan araç yok" + "Filtreyi temizle".
+- **Mobil:** sadece "Filtre" butonu; basınca panel açılır. Aktif bir filtre varsa butonda nokta.
+
 ## 12. Kurulumda karşılaşılan sorunlar ve çözümleri (görüşmede sorulabilir)
 
 - **Harita boş görünüyordu: MapLibre worker dosyası yüklenemiyordu.** MapLibre 6 haritayı ayrı bir web worker'da işler ve
