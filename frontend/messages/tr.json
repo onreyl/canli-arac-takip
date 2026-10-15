@@ -32,5 +32,60 @@
     "placeholder": "Hat veya araç numarası ara…",
     "includeStale": "Eski araçları da göster",
     "count": "{total} araçtan {shown} tanesi gösteriliyor"
+  },
+  "VehicleDetail": {
+    "title": "Araç {vehicle}",
+    "close": "Araç detayını kapat",
+    "description": "Canlı araç bilgileri ve konum geçmişi",
+    "live": "Canlı bilgiler",
+    "deadRun": "Boş sefer",
+    "stale": "Eski",
+    "unknown": "Bilgi yok",
+    "loadingLive": "Canlı bilgiler yükleniyor…",
+    "notLive": "Şu an canlı takipte değil.",
+    "route": "Hat",
+    "trip": "Sefer",
+    "statusLabel": "Durum",
+    "occupancyLabel": "Doluluk",
+    "bearing": "Yön",
+    "degrees": "{value}°",
+    "position": "Konum",
+    "coordinates": "{latitude}, {longitude}",
+    "updated": "Son güncelleme",
+    "history": "Konum geçmişi",
+    "refresh": "Yenile",
+    "range": "Geçmiş aralığı",
+    "ranges": {
+      "15m": "15 dk",
+      "30m": "30 dk",
+      "1h": "1 saat",
+      "3h": "3 saat"
+    },
+    "loadingHistory": "Geçmiş yükleniyor…",
+    "invalidRange": "Aralık geçersiz. Güncel bir aralık için yenile.",
+    "historyError": "Konum geçmişi yüklenemedi.",
+    "retry": "Tekrar dene",
+    "emptyHistory": "Bu aralıkta kayıt yok.",
+    "time": "Saat",
+    "speed": "Hız (km/sa)",
+    "missingSpeed": "—",
+    "loadedCount": "{count} kayıt yüklendi",
+    "loadMore": "Daha fazla yükle",
+    "status": {
+      "IncomingAt": "Durağa yaklaşıyor",
+      "StoppedAt": "Durakta",
+      "InTransitTo": "Seyir halinde"
+    },
+    "occupancy": {
+      "Empty": "Boş",
+      "ManySeatsAvailable": "Çok sayıda boş koltuk",
+      "FewSeatsAvailable": "Az sayıda boş koltuk",
+      "StandingRoomOnly": "Yalnızca ayakta yer var",
+      "CrushedStandingRoomOnly": "Ayakta çok sıkışık",
+      "Full": "Dolu",
+      "NotAcceptingPassengers": "Yolcu kabul etmiyor",
+      "NoDataAvailable": "Bilgi yok",
+      "NotBoardable": "Biniş yapılamaz"
+    }
   }
 }

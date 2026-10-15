@@ -32,5 +32,60 @@
     "placeholder": "Search route or vehicle number…",
     "includeStale": "Include stale vehicles",
     "count": "Showing {shown} of {total} vehicles"
+  },
+  "VehicleDetail": {
+    "title": "Vehicle {vehicle}",
+    "close": "Close vehicle details",
+    "description": "Live vehicle information and position history",
+    "live": "Live information",
+    "deadRun": "Dead run",
+    "stale": "Stale",
+    "unknown": "No information",
+    "loadingLive": "Loading live information…",
+    "notLive": "Not currently tracked live.",
+    "route": "Route",
+    "trip": "Trip",
+    "statusLabel": "Status",
+    "occupancyLabel": "Occupancy",
+    "bearing": "Bearing",
+    "degrees": "{value}°",
+    "position": "Position",
+    "coordinates": "{latitude}, {longitude}",
+    "updated": "Last update",
+    "history": "Position history",
+    "refresh": "Refresh",
+    "range": "History range",
+    "ranges": {
+      "15m": "15 min",
+      "30m": "30 min",
+      "1h": "1 hour",
+      "3h": "3 hours"
+    },
+    "loadingHistory": "Loading history…",
+    "invalidRange": "Invalid range. Refresh to use a current time range.",
+    "historyError": "Could not load position history.",
+    "retry": "Retry",
+    "emptyHistory": "No records in this range.",
+    "time": "Time",
+    "speed": "Speed (km/h)",
+    "missingSpeed": "—",
+    "loadedCount": "{count} records loaded",
+    "loadMore": "Load more",
+    "status": {
+      "IncomingAt": "Approaching stop",
+      "StoppedAt": "At stop",
+      "InTransitTo": "In transit"
+    },
+    "occupancy": {
+      "Empty": "Empty",
+      "ManySeatsAvailable": "Many seats available",
+      "FewSeatsAvailable": "Few seats available",
+      "StandingRoomOnly": "Standing room only",
+      "CrushedStandingRoomOnly": "Crowded standing room only",
+      "Full": "Full",
+      "NotAcceptingPassengers": "Not accepting passengers",
+      "NoDataAvailable": "No information",
+      "NotBoardable": "Not boardable"
+    }
   }
 }

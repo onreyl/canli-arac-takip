@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { VehicleDetailPanel, useVehicleHistory, historyCoordinates, parseRange, detailToParams, type HistoryRange } from "@/features/vehicle-detail";
 import { ConnectionBadge } from "./ConnectionBadge";
 import { VehicleFilterPanel } from "./VehicleFilterPanel";
 import { filterToParams, parseFilter, STALE_REFRESH_MS, type VehicleFilter } from "../filter/vehicleFilter";
@@ -31,6 +32,16 @@ function FilteredLiveMapScreen() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const paramsKey = searchParams.toString();
+  const vehicleId = searchParams.get("vehicle") || null;
+  const range = parseRange(searchParams.get("range"));
+  const [initialVehicleId] = useState(vehicleId);
+  const history = useVehicleHistory(vehicleId, range);
+  const trail = useMemo(() => historyCoordinates(history.data?.pages ?? []), [history.data]);
+  const changeDetail = useCallback((id: string | null, nextRange: HistoryRange) => {
+    const params = detailToParams(id, nextRange, new URLSearchParams(paramsKey)).toString();
+    router.replace(`${pathname}${params ? `?${params}` : ""}`, { scroll: false });
+  }, [paramsKey, pathname, router]);
+  const selectVehicle = useCallback((id: string) => changeDetail(id, range), [changeDetail, range]);
   const filter = useMemo(() => parseFilter(new URLSearchParams(paramsKey)), [paramsKey]);
   const [resetVersion, setResetVersion] = useState(0);
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -52,7 +63,10 @@ function FilteredLiveMapScreen() {
 
   return (
     <main className="relative isolate h-dvh min-h-80 w-full overflow-hidden" aria-label={t("title")}>
-      <LiveMap filter={filter} nowMs={nowMs} />
+      <LiveMap filter={filter} nowMs={nowMs} selectedVehicleId={vehicleId}
+        initialVehicleId={initialVehicleId} onSelectVehicle={selectVehicle} trail={trail} />
+      {vehicleId && <VehicleDetailPanel vehicleId={vehicleId} range={range} history={history}
+        onRangeChange={(next) => changeDetail(vehicleId, next)} onClose={() => changeDetail(null, "1h")} />}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col items-start gap-3 p-3 sm:p-4">
         {status === "disconnected" && (
           <div role="alert" className="pointer-events-auto flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-950">

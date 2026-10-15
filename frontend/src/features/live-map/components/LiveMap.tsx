@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Map as MapLibreMap, setWorkerUrl, type GeoJSONSource } from "maplibre-gl";
-import type { FeatureCollection, Point } from "geojson";
+import type { FeatureCollection, LineString, Point } from "geojson";
 import { useLiveVehiclesStore } from "../store/liveVehiclesStore";
 import { isStale, matchesFilter, type VehicleFilter } from "../filter/vehicleFilter";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -17,10 +17,35 @@ const DEAD_RUN_COLOR = "#6b7280";
 const ACTIVE_OPACITY = 0.9;
 const STALE_OPACITY = 0.3;
 
-export default function LiveMap({ filter, nowMs }: { filter: VehicleFilter; nowMs: number }) {
+type Props = {
+  filter: VehicleFilter;
+  nowMs: number;
+  selectedVehicleId: string | null;
+  initialVehicleId: string | null;
+  onSelectVehicle: (vehicleId: string) => void;
+  trail: [number, number][];
+};
+
+export default function LiveMap({ filter, nowMs, selectedVehicleId, initialVehicleId, onSelectVehicle, trail }: Props) {
+  const scheduleRef = useRef<(() => void) | null>(null);
+  const selectedRef = useRef(selectedVehicleId);
+  const initialVehicleRef = useRef(initialVehicleId);
+  const selectRef = useRef(onSelectVehicle);
+  const trailRef = useRef(trail);
+  const updateTrailRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    selectedRef.current = selectedVehicleId;
+    selectRef.current = onSelectVehicle;
+    // Seçimden ayrılınca geciken snapshot kamerayı geri taşımamalıdır.
+    if (selectedVehicleId !== initialVehicleRef.current) initialVehicleRef.current = null;
+    scheduleRef.current?.();
+  }, [selectedVehicleId, onSelectVehicle]);
+  useEffect(() => {
+    trailRef.current = trail;
+    updateTrailRef.current?.();
+  }, [trail]);
   const filterRef = useRef(filter);
   const nowRef = useRef(nowMs);
-  const scheduleRef = useRef<(() => void) | null>(null);
 
   // Filtre değişince WebGL haritasını yeniden kurmak pahalıdır ve görünümü sıçratır.
   useEffect(() => {
@@ -54,6 +79,12 @@ export default function LiveMap({ filter, nowMs }: { filter: VehicleFilter; nowM
       const source = map.getSource<GeoJSONSource>("vehicles");
       if (!source) return;
       const state = useLiveVehiclesStore.getState();
+      const initial = initialVehicleRef.current;
+      if (initial && state.vehicles[initial]) {
+        const vehicle = state.vehicles[initial];
+        initialVehicleRef.current = null;
+        map.easeTo({ center: [vehicle.longitude, vehicle.latitude], zoom: 13 });
+      }
       const started = performance.now();
       const now = nowRef.current;
       const data: FeatureCollection<Point> = {
@@ -68,6 +99,7 @@ export default function LiveMap({ filter, nowMs }: { filter: VehicleFilter; nowM
               routeId: vehicle.routeId,
               isDeadRun: vehicle.isDeadRun,
               isStale: isStale(vehicle, now),
+              selected: vehicle.vehicleId === selectedRef.current,
             },
           })),
       };
@@ -83,6 +115,19 @@ export default function LiveMap({ filter, nowMs }: { filter: VehicleFilter; nowM
     }
 
     scheduleRef.current = schedule;
+    function updateTrail() {
+      if (!loaded) return;
+      const coordinates = trailRef.current;
+      const data: FeatureCollection<LineString> = {
+        type: "FeatureCollection",
+        features: coordinates.length < 2 ? [] : [{
+          type: "Feature", properties: {},
+          geometry: { type: "LineString", coordinates },
+        }],
+      };
+      map.getSource<GeoJSONSource>("trail")?.setData(data);
+    }
+    updateTrailRef.current = updateTrail;
 
     const unsubscribe = useLiveVehiclesStore.subscribe((state, previous) => {
       if (state.vehicles !== previous.vehicles || state.version !== previous.version) {
@@ -92,23 +137,42 @@ export default function LiveMap({ filter, nowMs }: { filter: VehicleFilter; nowM
     });
 
     map.on("load", () => {
+      map.addSource("trail", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({
+        id: "trail", type: "line", source: "trail",
+        paint: { "line-color": ACTIVE_COLOR, "line-width": 3 },
+      });
       map.addSource("vehicles", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       map.addLayer({
         id: "vehicles",
         type: "circle",
         source: "vehicles",
         paint: {
-          "circle-radius": 5,
+          "circle-radius": ["case", ["get", "selected"], 9, 5],
+          "circle-stroke-width": ["case", ["get", "selected"], 3, 0],
+          "circle-stroke-color": "#ffffff",
           "circle-color": ["case", ["get", "isDeadRun"], DEAD_RUN_COLOR, ACTIVE_COLOR],
           "circle-opacity": ["case", ["get", "isStale"], STALE_OPACITY, ACTIVE_OPACITY],
         },
       });
       loaded = true;
+      updateTrail();
       schedule();
     });
 
+    map.on("click", "vehicles", (event) => {
+      const id = event.features?.[0]?.properties?.vehicleId;
+      if (typeof id === "string") {
+        initialVehicleRef.current = null;
+        selectRef.current(id);
+      }
+    });
+    map.on("mouseenter", "vehicles", () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", "vehicles", () => { map.getCanvas().style.cursor = ""; });
+
     return () => {
       loaded = false;
+      updateTrailRef.current = null;
       unsubscribe();
       scheduleRef.current = null;
       if (frame !== undefined) cancelAnimationFrame(frame);
