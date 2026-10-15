@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using VehicleTracking.Application.Ingestion;
 
 namespace VehicleTracking.Api.Workers;
@@ -67,8 +68,9 @@ internal sealed partial class PositionWriterWorker(
         {
             try
             {
+                long start = Stopwatch.GetTimestamp();
                 int inserted = await writer.WriteAsync(batch.Positions, cancellationToken);
-                metrics.RecordWritten(inserted);
+                metrics.RecordWritten(inserted, Stopwatch.GetElapsedTime(start));
                 await buffer.AcknowledgeAsync(batch, cancellationToken);
                 return;
             }

@@ -31,7 +31,9 @@ public sealed class SystemController(
             m.DroppedBatchCount,
             dispatcher.ConnectionCount,
             buffer.Count,
-            liveState.Count);
+            liveState.Count,
+            m.LastWriteDuration?.TotalMilliseconds,
+            m.MaxWriteDurationLastHour?.TotalMilliseconds);
     }
 }
 
@@ -44,6 +46,8 @@ public sealed class SystemController(
 /// <param name="ConnectedClients">Bağlı WebSocket (SignalR) istemcisi.</param>
 /// <param name="PendingBatches">Tamponda DB'ye yazılmayı bekleyen parti.</param>
 /// <param name="LiveVehicles">Canlı durumdaki araç sayısı.</param>
+/// <param name="LastWriteDurationMs">Son başarılı DB yazmasının süresi (milisaniye); henüz yazma yoksa null.</param>
+/// <param name="MaxWriteDurationLastHourMs">Son 1 saatteki en uzun başarılı DB yazmasının süresi (milisaniye); pencerede yazma yoksa null.</param>
 public sealed record SystemStatusResponse(
     DateTimeOffset? LastSuccessfulFetchAt,
     double? LastFetchDurationMs,
@@ -53,4 +57,6 @@ public sealed record SystemStatusResponse(
     long DroppedBatchCount,
     int ConnectedClients,
     int PendingBatches,
-    int LiveVehicles);
+    int LiveVehicles,
+    double? LastWriteDurationMs,
+    double? MaxWriteDurationLastHourMs);

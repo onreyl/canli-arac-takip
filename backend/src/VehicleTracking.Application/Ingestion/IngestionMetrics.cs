@@ -7,7 +7,9 @@ public sealed record IngestionMetricsSnapshot(
     long FailedFetchCount,
     long FailedWriteCount,
     long WrittenLastHour,
-    long DroppedBatchCount);
+    long DroppedBatchCount,
+    TimeSpan? LastWriteDuration,
+    TimeSpan? MaxWriteDurationLastHour);
 
 /// <summary>
 /// Çekme ve yazma sayaçları. Çekme ve yazma ayrı iş parçacıklarında çalıştığı (ve API de okuduğu) için kilitli.
@@ -16,7 +18,7 @@ public sealed record IngestionMetricsSnapshot(
 public sealed class IngestionMetrics(TimeProvider timeProvider)
 {
     private readonly Lock _lock = new();
-    private readonly Queue<(DateTimeOffset At, int Count)> _writes = new();
+    private readonly Queue<(DateTimeOffset At, int Count, TimeSpan Duration)> _writes = new();
 
     private DateTimeOffset? _lastSuccessfulFetchAt;
     private TimeSpan? _lastFetchDuration;
@@ -24,6 +26,7 @@ public sealed class IngestionMetrics(TimeProvider timeProvider)
     private long _failedWriteCount;
     private long _droppedBatchCount;
     private long _writtenLastHour;
+    private TimeSpan? _lastWriteDuration;
 
     public void RecordFetchSuccess(TimeSpan duration)
     {
@@ -40,11 +43,13 @@ public sealed class IngestionMetrics(TimeProvider timeProvider)
 
     public void RecordDroppedBatch() => Interlocked.Increment(ref _droppedBatchCount);
 
-    public void RecordWritten(int count)
+    /// <summary>Başarılı yazmanın kayıt sayısını ve süresini kaydeder.</summary>
+    public void RecordWritten(int count, TimeSpan duration)
     {
         lock (_lock)
         {
-            _writes.Enqueue((timeProvider.GetUtcNow(), count));
+            _writes.Enqueue((timeProvider.GetUtcNow(), count, duration));
+            _lastWriteDuration = duration;
             _writtenLastHour += count;
             PruneWrites();
         }
@@ -55,13 +60,25 @@ public sealed class IngestionMetrics(TimeProvider timeProvider)
         lock (_lock)
         {
             PruneWrites();
+            // Pencerede yaklaşık en fazla 1.200 kayıt olduğundan en uzun süre için kuyruğu taramak yeterli.
+            TimeSpan? maxWriteDuration = null;
+            foreach (var write in _writes)
+            {
+                if (maxWriteDuration is null || write.Duration > maxWriteDuration.Value)
+                {
+                    maxWriteDuration = write.Duration;
+                }
+            }
+
             return new IngestionMetricsSnapshot(
                 _lastSuccessfulFetchAt,
                 _lastFetchDuration,
                 Interlocked.Read(ref _failedFetchCount),
                 Interlocked.Read(ref _failedWriteCount),
                 _writtenLastHour,
-                Interlocked.Read(ref _droppedBatchCount));
+                Interlocked.Read(ref _droppedBatchCount),
+                _lastWriteDuration,
+                maxWriteDuration);
         }
     }
 
