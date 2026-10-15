@@ -147,6 +147,12 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
 - **Dört durum:** yükleniyor (ilk veri yoksa iskelet), boş (henüz hiç başarılı okuma yok), hata (backend'e ulaşılamadı + yeniden
   dene; elde son veri varsa o gösterilir ve "güncellenemedi" notu düşülür), başarılı.
 
+- **Saat dilimi: tüm uygulamada Oslo** (`i18n/request.ts` → `timeZone: "Europe/Oslo"`, etiketlerde "(Oslo)").
+  Neden: veri Norveç'in ve senaryodaki ulaşım otoritesi Oslo saatiyle çalışır; tek yerde tanımlı olunca sunucuda üretilen HTML ile
+  tarayıcının gösterdiği saat aynı olur. (Codex ilk sürümde sadece bu sayfada İstanbul saatini gömmüştü; geçmiş listesi ise
+  tarayıcı saatini kullanıyordu → iki ekranda farklı saat. Tek dilime çekildi.)
+- **Doğrulandı:** `/tr/status`'un düz HTML'inde (JavaScript çalışmadan) veriler var → sunucu tarafı ilk yükleme çalışıyor.
+
 ## 12. Kurulumda karşılaşılan sorunlar ve çözümleri (görüşmede sorulabilir)
 
 - **Harita boş görünüyordu: MapLibre worker dosyası yüklenemiyordu.** MapLibre 6 haritayı ayrı bir web worker'da işler ve
