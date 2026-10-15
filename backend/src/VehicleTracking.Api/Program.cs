@@ -34,6 +34,15 @@ builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
 
+// Frontend başka bir adresten (geliştirmede localhost:3000) bağlanıyor; tarayıcı buna ancak CORS izniyle izin verir.
+// AllowCredentials: SignalR bağlantısı için gerekli; bu yüzden "her adrese izin" (*) yerine adresler config'ten tek tek verilir.
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(o => o.AddDefaultPolicy(policy => policy
+    .WithOrigins(allowedOrigins)
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()));
+
 var app = builder.Build();
 
 // Başlangıç toleransı ilk health isteğinden değil, uygulama açılışından itibaren ölçülsün.
@@ -45,6 +54,7 @@ app.MapOpenApi();
 app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Vehicle Tracking API v1"));
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health/live", new HealthCheckOptions
