@@ -23,6 +23,11 @@ builder.Services.AddHealthChecks()
 builder.Services.AddHostedService<PositionWriterWorker>();
 builder.Services.AddHostedService<FeedPollingWorker>();
 
+// Kapanış süreleri iç içe olmalı: yazıcının tampon boşaltması (20 sn) < host'un kapanış süresi (25 sn)
+// < Docker'ın SIGTERM'den sonra öldürmeden önce beklediği süre (docker-compose.yml: stop_grace_period 30 sn).
+// Docker'ın varsayılanı 10 sn; öyle kalsaydı DB yavaşken tampon boşalmadan süreç öldürülürdü.
+builder.Services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(25));
+
 // Canlı yayın. Enum'lar sayı yerine metin ("StoppedAt"): frontend'de okunur, enum sırası değişse de bozulmaz.
 builder.Services.AddSignalR()
     .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));

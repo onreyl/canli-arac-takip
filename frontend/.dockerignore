@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.env*
+public/maplibre/
+npm-debug.log*
+*.tsbuildinfo
+.git/
+.vs/
+.vscode/
+.idea/
+coverage/

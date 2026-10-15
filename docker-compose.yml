@@ -5,21 +5,60 @@ services:
     image: timescale/timescaledb:2.30.2-pg17
     container_name: vehicle-tracking-db
     environment:
-      # Değerler repodaki .env.example'dan kopyalanan, git'e girmeyen .env dosyasından gelir
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Yerel geliştirme varsayılanları gerçek bir sır değildir; .env ile değiştirilebilir.
+      POSTGRES_DB: ${POSTGRES_DB:-vehicle_tracking}
+      POSTGRES_USER: ${POSTGRES_USER:-vehicle_tracking}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vehicle_tracking}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      # Konteyner silinse de veri kalsın
+      # Konteyner silinse de veri kalsın.
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      # Backend, DB gerçekten sorgu kabul edene kadar beklesin diye (Gün 12'de depends_on ile kullanılacak)
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      # Backend, DB bağlantı kabul edene kadar beklesin.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vehicle_tracking} -d ${POSTGRES_DB:-vehicle_tracking}"]
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    environment:
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=${POSTGRES_DB:-vehicle_tracking};Username=${POSTGRES_USER:-vehicle_tracking};Password=${POSTGRES_PASSWORD:-vehicle_tracking}"
+      Cors__AllowedOrigins__0: http://localhost:3000
+      ASPNETCORE_ENVIRONMENT: Production
+      # Dayanıklılık testleri ve silme gösterimi için kod değiştirmeden ayar (bkz. docs/resilience-tests.md).
+      # Varsayılanlar appsettings.json'dakiyle aynı; hiçbir şey verilmezse normal sistem çalışır.
+      Entur__VehiclePositionsUrl: ${ENTUR_URL:-https://api.entur.io/realtime/v1/gtfs-rt/vehicle-positions}
+      Storage__Retention: ${RETENTION:-03:00:00}
+      Storage__ChunkInterval: ${CHUNK_INTERVAL:-00:15:00}
+      Storage__RetentionCheckInterval: ${RETENTION_CHECK_INTERVAL:-00:01:00}
+    ports:
+      - "5295:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    # Program.cs'te host kapanışı 25 sn, yazıcının tampon boşaltması 20 sn;
+    # Docker varsayılanı (10 sn) daha kısa olduğu için tampon boşalmadan süreç öldürülürdü.
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # NEXT_PUBLIC_* Next.js'te build anında koda gömülür; çalışma zamanı environment'ı yetmez.
+        # Tarayıcı backend'e host üzerinden gittiği için localhost:5295 kullanılır.
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:5295
+    environment:
+      # Sistem durumu sayfasının ilk verisini sunucu, konteyner ağı içinden backend'den alır.
+      API_INTERNAL_BASE_URL: http://backend:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
