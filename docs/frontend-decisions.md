@@ -35,7 +35,7 @@ Genel ilke: dokümanın istediği her özellik var, ama en sade haliyle. Fazlada
 ## 4. Sayfa düzeni
 
 - **Masaüstü:** tam ekran harita; solda arama/filtre; araç seçilince sağda detay paneli; üstte bağlantı rozeti.
-- **Mobil (375 px):** tam ekran harita; filtre açılır-kapanır; detay alttan açılan panel (shadcn `Sheet`).
+- **Mobil (375 px):** tam ekran harita; filtre açılır-kapanır; detay ekranın alt yarısında (modal değil, harita kullanılabilir kalır).
 - **Sistem durumu:** ayrı sayfa (`/[dil]/status`).
 
 ## 5. Adresler, dil, URL'de durum
@@ -91,7 +91,7 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
 ## 11. UI: Tailwind + shadcn/ui
 
 - shadcn/ui bir kütüphane değil, projeye kopyalanan hazır bileşenler (`src/components/ui`). Sadece gerekenler eklenir
-  (button, input, badge, card, sheet, switch, skeleton).
+  (button, input, badge, card, switch, skeleton).
 - Stil Tailwind sınıflarıyla (`className="flex gap-2"`).
 
 ## 11b. Arama ve filtre (2. katman)
@@ -125,7 +125,12 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
   TanStack Query isteği bir kez atar, ikisine aynı önbelleği verir. Aralık URL'de olduğu için ikisi aynı aralığı görür.
 - **Feature'lar arası kural (güncelleme):** bir feature başka bir feature'ı sadece onun `index.ts`'i (dışa açık API) üzerinden
   kullanır, iç dosyalarına uzanmaz. C# karşılığı: başka bir projenin sadece `public` arayüzünü kullanmak, `internal`'ına değil.
-- **Masaüstü:** sağda sabit genişlikte panel. **Mobil:** alttan açılan panel (shadcn `Sheet`), harita üstte görünür kalır.
+- **Masaüstü:** sağda sabit genişlikte panel. **Mobil:** ekranın alt yarısı. Tek bileşen, sadece Tailwind'in ekran genişliğine
+  göre değişen sınıfları (`sm:`). Modal değil: harita üstte kullanılabilir kalır, başka bir araca dokunup seçilebilir.
+  (Codex ilk sürümde mobilde modal `Sheet` + JS ile ekran ölçümü kullanmıştı; haritayı kilitlediği ve gereksiz karmaşık olduğu için sadeleştirildi.)
+- **Geçmiş penceresi nasıl sabit kalıyor:** "şimdi" İLK sayfa çekilirken belirlenir ve sonraki sayfalara imleçle birlikte taşınır
+  (`pageParam = { cursor, windowEnd }`). Render sırasında `Date.now()` kullanılmaz (React kuralı; ayrıca her render yeni bir istek
+  demek olurdu). "Yenile" sorguyu sıfırlar → yeni bir "şimdi".
 
 ## 12. Kurulumda karşılaşılan sorunlar ve çözümleri (görüşmede sorulabilir)
 
