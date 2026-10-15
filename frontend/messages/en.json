@@ -1,0 +1,26 @@
+{
+  "Metadata": {
+    "title": "Live Vehicle Tracking",
+    "description": "Live positions of public transport vehicles in Norway."
+  },
+  "LiveMap": {
+    "title": "Live vehicle map",
+    "loading": "Loading vehicles…",
+    "empty": "There are no vehicles to display right now.",
+    "disconnected": "Live connection lost. Showing last known positions.",
+    "retry": "Retry"
+  },
+  "Connection": {
+    "connected": "Connected",
+    "connecting": "Connecting",
+    "reconnecting": "Reconnecting",
+    "disconnected": "Disconnected",
+    "vehicleCount": "{count, plural, one {# vehicle} other {# vehicles}}",
+    "duration": "Processing: {duration, number, ::.00} ms"
+  },
+  "Map": {
+    "title": "Live vehicle map",
+    "description": "Positions of public transport vehicles in Norway",
+    "toggleAttribution": "Toggle map attribution"
+  }
+}

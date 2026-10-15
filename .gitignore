@@ -487,3 +487,6 @@ notes/
 # Case dokümanı (telifli, public repoya girmemeli) ve geçici dosyalar
 *.pdf
 tmp/
+
+# Claude Code yerel önizleme ayarı
+.claude/

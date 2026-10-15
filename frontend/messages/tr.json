@@ -1,0 +1,26 @@
+{
+  "Metadata": {
+    "title": "Canlı Araç Takip",
+    "description": "Norveç toplu taşıma araçlarının canlı konumları."
+  },
+  "LiveMap": {
+    "title": "Canlı araç haritası",
+    "loading": "Araçlar yükleniyor…",
+    "empty": "Şu an gösterilecek araç yok.",
+    "disconnected": "Canlı bağlantı koptu. Son bilinen konumlar gösteriliyor.",
+    "retry": "Yeniden dene"
+  },
+  "Connection": {
+    "connected": "Bağlı",
+    "connecting": "Bağlanıyor",
+    "reconnecting": "Yeniden bağlanıyor",
+    "disconnected": "Koptu",
+    "vehicleCount": "{count, number} araç",
+    "duration": "İşleme: {duration, number, ::.00} ms"
+  },
+  "Map": {
+    "title": "Canlı araç haritası",
+    "description": "Norveç toplu taşıma araçlarının konumları",
+    "toggleAttribution": "Harita kaynaklarını göster/gizle"
+  }
+}
