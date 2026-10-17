@@ -19,7 +19,7 @@ public static class DependencyInjection
         AddPersistence(services, configuration);
         AddFeeds(services, configuration);
 
-        // Aşama 1: bellek tamponu. Aşama 2'de (Gün 6) sadece bu satır disk tamponuyla değişecek.
+        // Bellek tamponu ani çökmede veriyi korumaz; bilinen sınır için bkz. docs/known-limitations.md.
         services.AddSingleton<IFeedBuffer, InMemoryFeedBuffer>();
 
         return services;

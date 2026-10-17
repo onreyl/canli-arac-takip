@@ -33,7 +33,7 @@ namespace VehicleTracking.Infrastructure.Persistence.Migrations
                     table.PrimaryKey("pk_vehicle_positions", x => new { x.entity_id, x.measured_at });
                 });
 
-            // TimescaleDB (Karar 3): tabloyu measured_at'e göre 15 dakikalık parçalara (chunk) bölünen hypertable yap.
+            // TimescaleDB: tabloyu measured_at'e göre 15 dakikalık parçalara (chunk) bölünen hypertable yap.
             // Silme, süresi dolan chunk'ı bütün olarak atarak yapılır (satır satır DELETE değil).
             // 15 dk: 3 saatlik pencerede ~12 chunk; bir chunk silinmeden en fazla ~15 dk fazla kalır, sorgular yine 3 saate filtreler.
             migrationBuilder.Sql(

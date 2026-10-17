@@ -5,7 +5,7 @@ using VehicleTracking.Application.Live;
 namespace VehicleTracking.Api.Realtime;
 
 /// <summary>
-/// Değişiklikleri her istemciye AYRI bir gönderim döngüsüyle iletir (Karar 7: birleştirme / coalescing).
+/// Değişiklikleri her istemciye AYRI bir gönderim döngüsüyle iletir (birleştirme / coalescing).
 /// </summary>
 /// <remarks>
 /// Neden her istemciye ayrı döngü: hepsine tek döngüden gönderseydik, yavaş bir istemcinin gönderimini beklerken

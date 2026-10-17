@@ -9,9 +9,9 @@ public sealed class IngestionOptions
     public TimeSpan PollInterval { get; init; } = TimeSpan.FromSeconds(3);
 
     /// <summary>
-    /// Bellek tamponunda en fazla kaç parti bekleyebilir (Aşama 1). Bir parti ≈ bir yeni feed'in yeni konumları
+    /// Bellek tamponunda en fazla kaç parti bekleyebilir. Bir parti ≈ bir yeni feed'in yeni konumları
     /// (~600-2.000 konum, kabaca 0,2-0,6 MB). Yeni feed ~6 sn'de bir geldiği için 500 parti ≈ DB'siz ~50 dk.
-    /// Dolarsa en eski parti atılır ve kayıp olarak sayılır (Aşama 2'de disk tamponu bu sınırı kaldıracak).
+    /// Dolarsa en eski parti atılır ve kayıp olarak sayılır (bilinen sınır; bkz. docs/known-limitations.md).
     /// </summary>
     public int BufferCapacity { get; init; } = 500;
 }

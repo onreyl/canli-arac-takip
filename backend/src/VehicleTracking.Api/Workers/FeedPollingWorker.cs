@@ -66,7 +66,7 @@ internal sealed partial class FeedPollingWorker(
                 return;
             }
 
-            // Canlı kol (Karar 6): DB'den bağımsız, önce o. Publish beklemez; yavaş istemci bu döngüyü yavaşlatamaz.
+            // Canlı kol: DB'den bağımsız, önce o. Publish beklemez; yavaş istemci bu döngüyü yavaşlatamaz.
             // Ayrı try: canlı yayındaki bir hata asla aşağıdaki kalıcılık kolunu (tampona yazma) engellememeli.
             try
             {

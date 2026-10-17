@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <!-- Access="Internal": üretilen protobuf sınıfları bu projenin dışından görünmez.
-         "Protobuf tipleri Infrastructure dışına çıkmaz" kuralını derleyici zorlar (Karar 5). -->
+         "Protobuf tipleri Infrastructure dışına çıkmaz" kuralını derleyici zorlar. -->
     <Protobuf Include="Feeds\Protos\gtfs-realtime.proto" GrpcServices="None" Access="Internal" />
   </ItemGroup>
 

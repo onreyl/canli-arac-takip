@@ -14,8 +14,8 @@ public sealed record LiveUpdate(long Version, IReadOnlyList<VehiclePosition> Ups
 }
 
 /// <summary>
-/// Bellekte her aracın son konumu (Karar 6: canlı yayın DB'den bağımsız; DB kapalıyken de harita akar).
-/// Anahtar araç kimliği: feed'de aynı araç birden çok varlık olarak geliyor, haritada ise tek işaret olmalı (Karar 2).
+/// Bellekte her aracın son konumu (canlı yayın DB'den bağımsız; DB kapalıyken de harita akar).
+/// Anahtar araç kimliği: feed'de aynı araç birden çok varlık olarak geliyor, haritada ise tek işaret olmalı.
 /// </summary>
 /// <remarks>
 /// Çekme döngüsü yazar, SignalR ve REST okur (farklı iş parçacıkları) → kilitli.

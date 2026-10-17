@@ -10,11 +10,11 @@ internal sealed class VehiclePositionConfiguration : IEntityTypeConfiguration<Ve
     {
         builder.ToTable("vehicle_positions");
 
-        // Tekrar güvenli yazmanın anahtarı (Karar 1): aynı ölçüm iki kez gelirse ON CONFLICT DO NOTHING ile yok sayılır.
+        // Tekrar güvenli yazmanın anahtarı: aynı ölçüm iki kez gelirse ON CONFLICT DO NOTHING ile yok sayılır.
         // TimescaleDB kuralı: hypertable'daki tekil anahtarlar zaman sütununu (measured_at) içermek zorunda.
         builder.HasKey(p => new { p.EntityId, p.MeasuredAt });
 
-        // "Bu aracın son 3 saati" sorgusu için. Araç kimliği tekil değil, geçmiş araç kimliğiyle sorgulanır (Karar 2).
+        // "Bu aracın son 3 saati" sorgusu için. Araç kimliği tekil değil, geçmiş araç kimliğiyle sorgulanır.
         builder.HasIndex(p => new { p.VehicleId, p.MeasuredAt })
             .IsDescending(false, true);
 

@@ -56,7 +56,7 @@ Tarih: 12-13 Ekim 2026. Ölçümler kısa sürelidir (dakikalar); uzun ölçüml
 
 ## Hacim ölçümü
 
-"Yazılacak satır": Karar 1'in kuralına göre yazılacak satırlar, yani daha önce görülmemiş `(entity_id, measured_at)` çiftleri ve ölçüm zamanı 3 saatten yeni olanlar. İlk tur başlangıç yüklemesi olduğu için hesaba katılmadı.
+"Yazılacak satır": daha önce görülmemiş `(entity_id, measured_at)` çiftleri ve ölçüm zamanı 3 saatten yeni olanlar. İlk tur başlangıç yüklemesi olduğu için hesaba katılmadı.
 
 | Ölçüm | Saat (TR / Oslo) | Süre | Yazılacak satır / saat | 3 saat |
 |---|---|---|---|---|
@@ -130,7 +130,7 @@ MOR 125, OST 120, (boş sefer) 107, FIN 105, VKT 90, VYG 68, VYX 52, TEL 52, VYB
 **Oslo'nun Ruter'i (RUT) ve Bergen'in Skyss'i (SKY) bu akışta yok.** Bu yüzden Oslo ve Bergen şehir içi seyrek; oradaki noktalar
 çevre operatörlerden (Brakar, Østfold vb.) ve trenlerden geliyor. Bizim tarafımızda bir filtreleme yok, kaynak bunları göndermiyor.
 
-## Tasarıma etkileri (Gün 2'de karara bağlanacak)
+## Tasarıma etkileri
 
 - Turlar arası takip ve tekrar kontrolü `entity.id` + ölçüm zamanı üzerinden yapılmalı.
 - Feed zamanı değişmemişse veya geri gitmişse tur atlanabilir.

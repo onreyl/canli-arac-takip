@@ -76,7 +76,7 @@ O dakikalarda veri yoktur — **kaçınılmaz kayıp** (GTFS-RT geçmiş tutmaz)
 
 ## Test 3 — Veritabanı birkaç dakika kapalı
 
-**Ne bekliyoruz:** toplama ve **canlı harita** devam eder (Karar 6), yazılamayan veri tamponda bekler, DB dönünce yazılır,
+**Ne bekliyoruz:** toplama ve **canlı harita** devam eder, yazılamayan veri tamponda bekler, DB dönünce yazılır,
 **veri kaybı yok**.
 
 1. Saati not et.

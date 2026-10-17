@@ -32,7 +32,7 @@ public sealed record VehiclePosition(
 
     /// <summary>
     /// Ölçüm saklama penceresinin içinde mi? Feed'deki varlıkların yarısından fazlası bitmiş seferlerin
-    /// saatler önceki son konumu; bunları yazmıyoruz (Karar 1).
+    /// saatler önceki son konumu; bunları yazmıyoruz.
     /// </summary>
     public bool IsWithinRetention(DateTimeOffset now, TimeSpan retention) => MeasuredAt >= now - retention;
 }

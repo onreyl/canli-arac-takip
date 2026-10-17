@@ -2,7 +2,7 @@ using VehicleTracking.Application.Ingestion;
 
 namespace VehicleTracking.UnitTests.Application;
 
-// Karar 1: Eski feed ve ölçümler elenir; aynı aracın farklı seferleri ayrı varlık olarak korunur.
+// Eski feed ve ölçümler elenir; aynı aracın farklı seferleri ayrı varlık olarak korunur.
 // Gerçek feed'in yarısından fazlası eski ölçümdür, feed zamanı turların yaklaşık %15'inde geri gider.
 public sealed class FeedIngestorTests
 {

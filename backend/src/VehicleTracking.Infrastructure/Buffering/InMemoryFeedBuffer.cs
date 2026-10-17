@@ -6,14 +6,14 @@ using VehicleTracking.Application.Ingestion;
 namespace VehicleTracking.Infrastructure.Buffering;
 
 /// <summary>
-/// Aşama 1 tamponu: bellekte, sınırlı bir Channel. Çekme ve yazma birbirini beklemez;
+/// Bellek tamponu: sınırlı bir Channel. Çekme ve yazma birbirini beklemez;
 /// DB kapalıyken partiler burada birikir.
 /// </summary>
 /// <remarks>
-/// Bilinen kayıp durumları (README'de yazılacak):
+/// Bilinen kayıp durumları:
 /// - Uygulama ani çökerse (kill -9) tampondakiler kaybolur. Düzgün kapanışta yazıcı tamponu boşaltmaya çalışır.
 /// - DB çok uzun süre kapalı kalıp tampon dolarsa en eski parti atılır (sayılır, loglanır).
-/// Aşama 2'de (disk) ikisi de ortadan kalkacak.
+/// Disk tamponu kapsam dışıdır; bunlar bilinen sınırlardır. Bkz. docs/known-limitations.md.
 /// </remarks>
 internal sealed partial class InMemoryFeedBuffer : IFeedBuffer
 {

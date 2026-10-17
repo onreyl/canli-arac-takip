@@ -1,13 +1,14 @@
 namespace VehicleTracking.Application.Ingestion;
 
 /// <summary>
-/// Çekme ile yazma arasındaki tampon. DB yavaş ya da kapalıyken veri burada bekler (Karar 4).
+/// Çekme ile yazma arasındaki tampon. DB yavaş ya da kapalıyken veri burada bekler.
 /// </summary>
 /// <remarks>
 /// "Al → yaz → onayla" sözleşmesi: yazıcı bir partiyi ancak DB'ye başarıyla yazdıktan sonra onaylar.
-/// Aşama 1 (bellek) için onay bir şey yapmaz; Aşama 2'de (disk) onaylanan partinin dosyası silinecek,
-/// onaylanmadan çökülürse dosya kalacak ve açılışta tekrar yazılacak (yazma tekrar güvenli olduğu için sorun yok).
-/// Bu yüzden arayüz şimdiden onay adımını içeriyor; Aşama 2'de diğer kod değişmeyecek.
+/// Bellek tamponunda onay bir şey yapmaz. Olası disk tamponunda onaylanan partinin dosyası silinebilir;
+/// onaylanmadan çökülürse dosya açılışta tekrar yazılabilir (yazma tekrar güvenli olduğu için sorun yok).
+/// Onay adımı, disk tamponuna veya kalıcı bir kuyruğa (RabbitMQ vb.) geçilirse yazıcı işçisinin değişmemesini sağlar.
+/// Disk tamponu kapsam dışıdır; mevcut bellek tamponunun bilinen sınırları için bkz. docs/known-limitations.md.
 /// </remarks>
 public interface IFeedBuffer
 {

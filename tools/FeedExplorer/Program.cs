@@ -108,7 +108,7 @@ try
         // Not: C#'ta gönderilmemiş alt nesne (Vehicle, Position, Trip) null gelir, string alan "" gelir.
         //   Bu feed'de her varlıkta Vehicle dolu olduğu için burada kontrol etmiyoruz; backend'de edeceğiz.
         int newPositions = 0;
-        // "Yazılacak" = Karar 1'in kuralı: yeni konum VE ölçüm zamanı saklama penceresinin (3 saat) içinde
+        // "Yazılacak" = yeni konum VE ölçüm zamanı saklama penceresinin (3 saat) içinde
         int toWrite = 0;
         foreach (FeedEntity entity in feed.Entity)
         {
@@ -179,8 +179,8 @@ void PrintVolumeSummary()
     }
 }
 
-// Her araç kimliğinin en yeni ölçümü ne kadar taze? (Karar 2'nin açık alt sorusu:
-// son ölçümü çok eski araçlar haritada "canlı" gibi gösterilmeli mi?)
+// Son ölçümü çok eski araçları haritada "canlı" gibi göstermemek için
+// her araç kimliğinin en yeni ölçümünün yaş dağılımına bakıyoruz.
 static void PrintFreshness(FeedMessage feed)
 {
     long nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

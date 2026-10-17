@@ -4,7 +4,7 @@ using VehicleTracking.Domain.Vehicles;
 
 namespace VehicleTracking.UnitTests.Application;
 
-// Karar 2: Haritada araç başına en yeni konum bulunur; süresi dolan araç istemciden de kaldırılır.
+// Haritada araç başına en yeni konum bulunur; süresi dolan araç istemciden de kaldırılır.
 public sealed class LiveVehicleStateTests
 {
     [Theory]

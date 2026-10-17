@@ -3,7 +3,7 @@ using VehicleTracking.Application.Live;
 
 namespace VehicleTracking.UnitTests.Api;
 
-// Karar 7: Yavaş istemci ara konumları biriktirmez; her aracın son değişikliğini alır.
+// Yavaş istemci ara konumları biriktirmez; her aracın son değişikliğini alır.
 // İlk tam görüntü, yeniden bağlanan istemcinin güncel duruma dönmesini sağlar.
 public sealed class LiveClientFeedTests
 {

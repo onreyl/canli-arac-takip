@@ -16,7 +16,7 @@ namespace VehicleTracking.Infrastructure.Persistence;
 /// IHostedService.StartAsync tamamlanmadan sonraki hosted service'ler (ör. feed çekici) başlamaz,
 /// böylece tablo hazır olmadan yazma denenmez.
 /// Bilinen sınırlama: DB açılışta kapalıysa uygulama DB gelene kadar burada bekler (çekme de başlamaz).
-/// Gün 6'da disk tamponu gelince bunu yeniden değerlendireceğiz.
+/// Disk tamponu kapsam dışıdır; bu bilinen sınır için bkz. docs/known-limitations.md.
 /// </remarks>
 internal sealed partial class DatabaseInitializer(
     IServiceScopeFactory scopeFactory,

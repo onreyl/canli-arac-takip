@@ -1,7 +1,7 @@
 services:
   db:
     # Sabit sürüm: "latest" zamanla değişir, değerlendirici aynı sürümü almalı.
-    # TimescaleDB 2.30.2 + PostgreSQL 17 (Karar 3: saklama/silme için hypertable + retention policy)
+    # TimescaleDB 2.30.2 + PostgreSQL 17 (saklama/silme için hypertable + retention policy)
     image: timescale/timescaledb:2.30.2-pg17
     container_name: vehicle-tracking-db
     environment:

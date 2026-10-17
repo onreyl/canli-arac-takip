@@ -13,7 +13,7 @@ public sealed record IngestResult(bool IsStale, IReadOnlyList<VehiclePosition> N
 }
 
 /// <summary>
-/// "Bu feed'den neyi yazmalıyız?" kararını verir (Karar 1). Durum tutar, bu yüzden singleton.
+/// "Bu feed'den neyi yazmalıyız?" kararını verir. Durum tutar, bu yüzden singleton.
 /// Sadece çekme döngüsü çağırır (tek iş parçacığı), kilit gerekmez.
 /// </summary>
 public sealed class FeedIngestor(IOptions<StorageOptions> storageOptions)
