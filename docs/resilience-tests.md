@@ -89,12 +89,22 @@ O dakikalarda veri yoktur — **kaçınılmaz kayıp** (GTFS-RT geçmiş tutmaz)
    - Sistem durumu: `Bekleyen parti` artıyor, `Başarısız yazma` artıyor, `Kayıp parti` 0.
    - `/health` → `database` Unhealthy, HTTP 503; ama `http://localhost:5295/health/live` 200 (süreç ayakta).
    - Backend logu: `DB'ye yazılamadı (...). X sonra tekrar denenecek; tamponda N parti bekliyor.` (bekleme 1→2→4→8→10 sn)
-4. Veritabanını başlat:
+4. DB kapalıyken geçmiş sorgusunu kontrol et. Canlı listede araç varsa kimliğini bul:
+   ```powershell
+   (Invoke-RestMethod http://localhost:5295/api/vehicles).vehicles[0].vehicleId
+   ```
+   Aşağıdaki `<bir araç id>` yerine bu kimliği yaz (liste boşsa canlı araç gelmesini bekle):
+   ```powershell
+   Invoke-WebRequest "http://localhost:5295/api/vehicles/<bir araç id>/history" -SkipHttpErrorCheck | Select-Object StatusCode, Content
+   ```
+   Beklenen: HTTP **503**, ProblemDetails gövdesinde `title`: "Veritabanına şu an ulaşılamıyor" ve
+   `detail`: "Geçmiş verisi geçici olarak kullanılamıyor; lütfen biraz sonra tekrar deneyin."
+5. Veritabanını başlat:
    ```powershell
    docker compose start db
    ```
-5. En fazla ~10 sn içinde `Bekleyen parti` 0'a inmeli.
-6. Dakika bazında satır sorgusu: kesinti dakikalarında **delik olmamalı** (sayılar normal seviyede).
+6. En fazla ~10 sn içinde `Bekleyen parti` 0'a inmeli.
+7. Dakika bazında satır sorgusu: kesinti dakikalarında **delik olmamalı** (sayılar normal seviyede).
 
 **Sonuç:** ……
 

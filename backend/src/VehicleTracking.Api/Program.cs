@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using VehicleTracking.Api.Errors;
 using VehicleTracking.Api.Health;
 using VehicleTracking.Api.Realtime;
 using VehicleTracking.Api.Workers;
@@ -38,6 +39,8 @@ builder.Services.AddSingleton<ILiveUpdatePublisher>(sp => sp.GetRequiredService<
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<DatabaseUnavailableExceptionHandler>();
 
 // Frontend başka bir adresten (geliştirmede localhost:3000) bağlanıyor; tarayıcı buna ancak CORS izniyle izin verir.
 // AllowCredentials: SignalR bağlantısı için gerekli; bu yüzden "her adrese izin" (*) yerine adresler config'ten tek tek verilir.
@@ -49,6 +52,8 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(policy => policy
     .AllowCredentials()));
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Başlangıç toleransı ilk health isteğinden değil, uygulama açılışından itibaren ölçülsün.
 _ = app.Services.GetRequiredService<IngestionHealthCheck>();

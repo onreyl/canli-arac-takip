@@ -49,9 +49,11 @@ public sealed class VehiclesController(
     /// <param name="cursor">Bir önceki cevabın nextCursor değeri; ilk sayfa için boş.</param>
     /// <param name="cancellationToken"></param>
     /// <response code="400">Geçersiz aralık, sayfa boyutu veya imleç.</response>
+    /// <response code="503">Veritabanına şu an ulaşılamıyor; geçmiş verisi geçici olarak kullanılamıyor.</response>
     [HttpGet("{vehicleId}/history")]
     [ProducesResponseType<HistoryPageResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult<HistoryPageResponse>> GetHistory(
         string vehicleId,
         [FromQuery] DateTimeOffset? from,
