@@ -52,7 +52,7 @@ Swagger ✓ · gizli bilgi repoda yok ✓ · Conventional Commits ✓.
 - Şu an: compose'da sadece `db` servisi var. Backend ve frontend için Dockerfile yok.
 - Gerekenler: backend Dockerfile (çok aşamalı .NET build), frontend Dockerfile (Next.js production build), compose'da
   `depends_on: db: condition: service_healthy`, bağlantı cümlesi ortam değişkeniyle (`ConnectionStrings__Postgres`),
-  CORS'a frontend adresi, frontend için iki API adresi (tarayıcı: `NEXT_PUBLIC_API_BASE_URL`, sunucu: `API_INTERNAL_BASE_URL`).
+  CORS'a frontend adresi, frontend için API adresi (`NEXT_PUBLIC_API_BASE_URL`).
 - Not: `NEXT_PUBLIC_*` Next.js'te **build anında** koda gömülür; Dockerfile'da build argümanı olarak verilmeli. Tuzak.
 
 ### 2. Kapanış süresi uyuşmazlığı (P0)
