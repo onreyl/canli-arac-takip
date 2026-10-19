@@ -36,7 +36,6 @@ function FilteredLiveMapScreen() {
   const paramsKey = searchParams.toString();
   const vehicleId = searchParams.get("vehicle") || null;
   const range = parseRange(searchParams.get("range"));
-  const [initialVehicleId] = useState(vehicleId);
   const history = useVehicleHistory(vehicleId, range);
   const trail = useMemo(() => historyCoordinates(history.data?.pages ?? []), [history.data]);
   const changeDetail = useCallback((id: string | null, nextRange: HistoryRange) => {
@@ -66,7 +65,7 @@ function FilteredLiveMapScreen() {
   return (
     <main className="relative isolate h-dvh min-h-80 w-full overflow-hidden" aria-label={t("title")}>
       <LiveMap filter={filter} nowMs={nowMs} selectedVehicleId={vehicleId}
-        initialVehicleId={initialVehicleId} onSelectVehicle={selectVehicle} trail={trail} />
+        onSelectVehicle={selectVehicle} trail={trail} />
       {vehicleId && <VehicleDetailPanel vehicleId={vehicleId} range={range} history={history}
         onRangeChange={(next) => changeDetail(vehicleId, next)} onClose={() => changeDetail(null, "1h")} />}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col items-start gap-3 p-3 sm:p-4">

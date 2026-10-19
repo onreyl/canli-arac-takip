@@ -112,7 +112,8 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
 ## 11c. Araç detayı, geçmiş ve iz (3. katman)
 
 - **Seçim URL'de:** haritada araca tıklayınca `?vehicle=<id>` eklenir (diğer parametreler korunur), panel kapanınca kalkar.
-  Paylaşılan link aynı aracı açık getirir; açılışta o araca bir kez yaklaşılır.
+  Paylaşılan link aynı aracı açık getirir (panel açık, araç vurgulu). Harita o araca otomatik yaklaşmaz: doküman bunu istemiyor,
+  ilk sürümdeki bu davranış haritada en karışık ref/efekt mantığıydı ve 19 Ekim'de kaldırıldı.
 - **Canlı bilgiler Zustand store'dan:** hat, sefer, durum, doluluk, son güncelleme ("12 sn önce"), boş sefer / eski etiketi.
   Panel açıkken araç güncellendikçe kendiliğinden değişir (doküman istiyor). Araç canlı durumda yoksa "şu an canlı takipte değil".
 - **Geçmiş REST'ten, TanStack Query ile:** `GET /api/vehicles/{id}/history`, imleçli sayfalama → `useInfiniteQuery`,

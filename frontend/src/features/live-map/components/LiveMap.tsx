@@ -21,23 +21,19 @@ type Props = {
   filter: VehicleFilter;
   nowMs: number;
   selectedVehicleId: string | null;
-  initialVehicleId: string | null;
   onSelectVehicle: (vehicleId: string) => void;
   trail: [number, number][];
 };
 
-export default function LiveMap({ filter, nowMs, selectedVehicleId, initialVehicleId, onSelectVehicle, trail }: Props) {
+export default function LiveMap({ filter, nowMs, selectedVehicleId, onSelectVehicle, trail }: Props) {
   const scheduleRef = useRef<(() => void) | null>(null);
   const selectedRef = useRef(selectedVehicleId);
-  const initialVehicleRef = useRef(initialVehicleId);
   const selectRef = useRef(onSelectVehicle);
   const trailRef = useRef(trail);
   const updateTrailRef = useRef<(() => void) | null>(null);
   useEffect(() => {
     selectedRef.current = selectedVehicleId;
     selectRef.current = onSelectVehicle;
-    // Seçimden ayrılınca geciken snapshot kamerayı geri taşımamalıdır.
-    if (selectedVehicleId !== initialVehicleRef.current) initialVehicleRef.current = null;
     scheduleRef.current?.();
   }, [selectedVehicleId, onSelectVehicle]);
   useEffect(() => {
@@ -79,12 +75,6 @@ export default function LiveMap({ filter, nowMs, selectedVehicleId, initialVehic
       const source = map.getSource<GeoJSONSource>("vehicles");
       if (!source) return;
       const state = useLiveVehiclesStore.getState();
-      const initial = initialVehicleRef.current;
-      if (initial && state.vehicles[initial]) {
-        const vehicle = state.vehicles[initial];
-        initialVehicleRef.current = null;
-        map.easeTo({ center: [vehicle.longitude, vehicle.latitude], zoom: 13 });
-      }
       const started = performance.now();
       const now = nowRef.current;
       const data: FeatureCollection<Point> = {
@@ -162,10 +152,7 @@ export default function LiveMap({ filter, nowMs, selectedVehicleId, initialVehic
 
     map.on("click", "vehicles", (event) => {
       const id = event.features?.[0]?.properties?.vehicleId;
-      if (typeof id === "string") {
-        initialVehicleRef.current = null;
-        selectRef.current(id);
-      }
+      if (typeof id === "string") selectRef.current(id);
     });
     map.on("mouseenter", "vehicles", () => { map.getCanvas().style.cursor = "pointer"; });
     map.on("mouseleave", "vehicles", () => { map.getCanvas().style.cursor = ""; });
