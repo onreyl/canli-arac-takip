@@ -82,9 +82,7 @@ internal sealed partial class FeedPollingWorker(
             }
 
             // Kalıcılık kolu: tampona; yazıcı işçisi DB'ye yazar.
-            await buffer.EnqueueAsync(
-                new PositionBatch(Guid.NewGuid(), snapshot.GeneratedAt, result.NewPositions),
-                stoppingToken);
+            await buffer.EnqueueAsync(new PositionBatch(result.NewPositions), stoppingToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

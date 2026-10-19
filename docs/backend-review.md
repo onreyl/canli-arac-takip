@@ -70,8 +70,8 @@ Swagger ✓ · gizli bilgi repoda yok ✓ · Conventional Commits ✓.
 ### 4. Bellek tamponu ve ani çökme (P1)
 - Aşama 1 (bellek `Channel`): düzgün kapanışta boşaltılıyor, **ani çökmede (kill -9) ya da DB kapalıyken yeniden başlatmada
   tampondakiler kayboluyor**. Tampon dolarsa (DB ~50 dk kapalı) en eski parti atılıyor (sayılıyor, loglanıyor).
-- Aşama 2 (disk tamponu) planlıydı (Karar 4), yapılmadı. Arayüz (`IFeedBuffer`, al → yaz → onayla) buna hazır; değişecek tek
-  yer `InfrastructureDependencyInjection` kaydı + yeni sınıf. Tahmini iş: yarım gün + Docker volume.
+- Aşama 2 (disk tamponu) planlıydı (Karar 4), yapılmadı. Tampon `IFeedBuffer` arkasında; değişecek yer
+  DI kaydı + yeni sınıf + arayüze "onayla" adımı (19 Ekim'de kullanılmadığı için kaldırıldı). Tahmini iş: yarım gün + Docker volume.
 - Karar senin: (a) Aşama 2'yi yap, (b) Aşama 1'de kal ve README'de bu kaybı açıkça yaz. Doküman (b)'yi de kabul ediyor
   ("tamamen önleyemediğin bir kayıp varsa açıkça yazman gizlemenden değerlidir"), ama "veri kaybı kabul edilmez" çok yüksek önemde.
 
