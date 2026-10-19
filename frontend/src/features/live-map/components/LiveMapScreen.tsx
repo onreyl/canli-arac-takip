@@ -80,7 +80,8 @@ function FilteredLiveMapScreen() {
           <Link href="/status" className="py-2 text-sm underline underline-offset-4">{navigation("status")}</Link>
           <LocaleSwitcher />
         </div>
-        <VehicleFilterPanel filter={filter} urlKey={`${pathname}?${paramsKey}#${resetVersion}`} nowMs={nowMs} onChange={changeFilter} />
+        <VehicleFilterPanel filter={filter} urlKey={`${pathname}?${paramsKey}#${resetVersion}`}
+          total={total} shown={shown} onChange={changeFilter} />
       </div>
       {(isLoading || (hasSnapshot && isEmpty && status !== "disconnected")) && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-4">
