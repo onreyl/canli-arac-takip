@@ -8,8 +8,4 @@ namespace VehicleTracking.Application.Ingestion;
 /// Bu yüzden "zaten işledim / eski feed" kararı buna göre verilir.
 /// </param>
 /// <param name="Positions">Geçerli konumlar (eksik alanlı varlıklar ayıklanmış).</param>
-/// <param name="SkippedEntityCount">Konum, araç kimliği veya ölçüm zamanı eksik olduğu için atlanan varlık sayısı.</param>
-public sealed record FeedSnapshot(
-    DateTimeOffset? GeneratedAt,
-    IReadOnlyList<VehiclePosition> Positions,
-    int SkippedEntityCount);
+public sealed record FeedSnapshot(DateTimeOffset? GeneratedAt, IReadOnlyList<VehiclePosition> Positions);
