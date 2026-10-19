@@ -52,7 +52,7 @@ Swagger ✓ · gizli bilgi repoda yok ✓ · Conventional Commits ✓.
 - Şu an: compose'da sadece `db` servisi var. Backend ve frontend için Dockerfile yok.
 - Gerekenler: backend Dockerfile (çok aşamalı .NET build), frontend Dockerfile (Next.js production build), compose'da
   `depends_on: db: condition: service_healthy`, bağlantı cümlesi ortam değişkeniyle (`ConnectionStrings__Postgres`),
-  CORS'a frontend adresi, frontend için iki API adresi (tarayıcı: `NEXT_PUBLIC_API_BASE_URL`, sunucu: `API_INTERNAL_BASE_URL`).
+  CORS'a frontend adresi, frontend için API adresi (`NEXT_PUBLIC_API_BASE_URL`).
 - Not: `NEXT_PUBLIC_*` Next.js'te **build anında** koda gömülür; Dockerfile'da build argümanı olarak verilmeli. Tuzak.
 
 ### 2. Kapanış süresi uyuşmazlığı (P0)
@@ -70,8 +70,8 @@ Swagger ✓ · gizli bilgi repoda yok ✓ · Conventional Commits ✓.
 ### 4. Bellek tamponu ve ani çökme (P1)
 - Aşama 1 (bellek `Channel`): düzgün kapanışta boşaltılıyor, **ani çökmede (kill -9) ya da DB kapalıyken yeniden başlatmada
   tampondakiler kayboluyor**. Tampon dolarsa (DB ~50 dk kapalı) en eski parti atılıyor (sayılıyor, loglanıyor).
-- Aşama 2 (disk tamponu) planlıydı (Karar 4), yapılmadı. Arayüz (`IFeedBuffer`, al → yaz → onayla) buna hazır; değişecek tek
-  yer `InfrastructureDependencyInjection` kaydı + yeni sınıf. Tahmini iş: yarım gün + Docker volume.
+- Aşama 2 (disk tamponu) planlıydı (Karar 4), yapılmadı. Tampon `IFeedBuffer` arkasında; değişecek yer
+  DI kaydı + yeni sınıf + arayüze "onayla" adımı (19 Ekim'de kullanılmadığı için kaldırıldı). Tahmini iş: yarım gün + Docker volume.
 - Karar senin: (a) Aşama 2'yi yap, (b) Aşama 1'de kal ve README'de bu kaybı açıkça yaz. Doküman (b)'yi de kabul ediyor
   ("tamamen önleyemediğin bir kayıp varsa açıkça yazman gizlemenden değerlidir"), ama "veri kaybı kabul edilmez" çok yüksek önemde.
 

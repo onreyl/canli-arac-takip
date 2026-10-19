@@ -37,7 +37,7 @@ public sealed class LiveVehicleStateTests
         Assert.True(update.IsEmpty);
         Assert.Equal(initial.Version, update.Version);
         Assert.Equal(initial.Version, state.GetSnapshot().Version);
-        Assert.Equal(newer, state.Find("vehicle"));
+        Assert.Equal(newer, Assert.Single(state.GetSnapshot().Vehicles));
     }
 
     [Fact]
@@ -75,28 +75,5 @@ public sealed class LiveVehicleStateTests
         Assert.Empty(update.Upserts);
         Assert.Equal(initial.Version + 1, update.Version);
         Assert.Empty(state.GetSnapshot().Vehicles);
-    }
-
-    [Fact]
-    public void Find_ExistingVehicle_ReturnsPosition()
-    {
-        var state = new LiveVehicleState(TestData.StorageOptions);
-        var position = TestData.Position("entity", "vehicle", TestData.Now);
-        state.Apply([position], TestData.Now);
-
-        var result = state.Find("vehicle");
-
-        Assert.Equal(position, result);
-    }
-
-    [Fact]
-    public void Find_UnknownVehicle_ReturnsNull()
-    {
-        var state = new LiveVehicleState(TestData.StorageOptions);
-        state.Apply([TestData.Position("entity", "vehicle", TestData.Now)], TestData.Now);
-
-        var result = state.Find("unknown");
-
-        Assert.Null(result);
     }
 }

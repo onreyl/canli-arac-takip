@@ -20,8 +20,9 @@
 
 **Nasıl önlenirdi:**
 - **Disk tamponu:** her yeni feed önce diske yazılır, veritabanına yazılınca silinir, açılışta diskte kalanlar yazılır.
-  Kodda hazırlığı var: `IFeedBuffer` "al → yaz → onayla" sözleşmesiyle tasarlandı; sadece yeni bir uygulama sınıfı ve tek
-  satırlık DI değişikliği gerekir. Yazma tekrar güvenli olduğu için (`ON CONFLICT DO NOTHING`) aynı dosyayı iki kez yazmak sorun olmaz.
+  Tampon `IFeedBuffer` arkasında olduğu için yazıcı ve çekici değişmez; yeni bir uygulama sınıfı, DI kaydı ve arayüze bir "onayla"
+  adımı (parti DB'ye yazılınca dosyası silinsin) eklenir. Yazma tekrar güvenli olduğu için (`ON CONFLICT DO NOTHING`) aynı dosyayı
+  iki kez yazmak sorun olmaz.
 - Ya da **RabbitMQ / Kafka gibi kalıcı bir kuyruk:** çekme servisi kuyruğa yazar, yazıcı oradan onaylı okur.
 - Neden yapılmadı: 14 günlük süre içinde öncelik zorunlu maddelere (frontend dahil) verildi; risk küçük ve açıkça belgelendi.
 

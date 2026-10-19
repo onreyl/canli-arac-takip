@@ -112,7 +112,8 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
 ## 11c. Araç detayı, geçmiş ve iz (3. katman)
 
 - **Seçim URL'de:** haritada araca tıklayınca `?vehicle=<id>` eklenir (diğer parametreler korunur), panel kapanınca kalkar.
-  Paylaşılan link aynı aracı açık getirir; açılışta o araca bir kez yaklaşılır.
+  Paylaşılan link aynı aracı açık getirir (panel açık, araç vurgulu). Harita o araca otomatik yaklaşmaz: doküman bunu istemiyor,
+  ilk sürümdeki bu davranış haritada en karışık ref/efekt mantığıydı ve 19 Ekim'de kaldırıldı.
 - **Canlı bilgiler Zustand store'dan:** hat, sefer, durum, doluluk, son güncelleme ("12 sn önce"), boş sefer / eski etiketi.
   Panel açıkken araç güncellendikçe kendiliğinden değişir (doküman istiyor). Araç canlı durumda yoksa "şu an canlı takipte değil".
 - **Geçmiş REST'ten, TanStack Query ile:** `GET /api/vehicles/{id}/history`, imleçli sayfalama → `useInfiniteQuery`,
@@ -135,12 +136,13 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
 ## 11d. Sistem durumu sayfası (4. katman)
 
 - **Adres:** `/[dil]/status`. Haritadan ve haritaya bağlantı; her iki sayfada TR/EN dil değiştirici.
-- **Sunucu/istemci ayrımının örneği:** sayfa bir **Server Component**. İlk veriyi sunucuda `GET /api/system/status`'tan çeker,
-  böylece sayfa boş açılmaz. Sonra **Client Component** (`SystemStatusPanel`) TanStack Query ile 5 sn'de bir yeniler; ilk veri
-  `initialData` olarak verilir. C# karşılığı: sayfayı sunucuda dolu render etmek (Razor) + sonra tarayıcıda periyodik AJAX.
-- **İki API adresi:** tarayıcı backend'e `NEXT_PUBLIC_API_BASE_URL` (ör. `http://localhost:5295`) ile gider. Sunucu tarafı ise
-  Docker'da backend'e konteyner ağı üzerinden ulaşır (ör. `http://backend:8080`): `API_INTERNAL_BASE_URL`. Tanımlı değilse
-  tarayıcı adresi kullanılır (geliştirmede ikisi aynı).
+- **Veri tamamen tarayıcıda çekilir:** sayfa (Server Component) sadece başlığı ve iskeleti verir; `SystemStatusPanel` (Client
+  Component) TanStack Query ile `GET /api/system/status`'u çeker ve 5 sn'de bir yeniler (`refetchInterval`). C# karşılığı: boş
+  sayfa + tarayıcıda periyodik AJAX.
+- **Neden sunucuda ilk veri yok (19 Ekim sadeleştirmesi):** ilk sürümde sayfa ilk veriyi sunucuda çekip `initialData` olarak
+  veriyordu; bu, ikinci bir API adresi (`API_INTERNAL_BASE_URL`, Docker ağı içi) ve ilk veri hatasını ayrıca izleyen bir mantık
+  gerektiriyordu. Doküman sadece "periyodik güncellensin" diyor; kazanç ilk açılıştaki kısa iskeletten ibaretti. Şimdi harita
+  sayfasıyla aynı desen: tek API adresi (`NEXT_PUBLIC_API_BASE_URL`), tek veri yolu (`fetchJson` + zod).
 - **Gösterilenler:** son başarılı okuma (göreli + saat), son okuma süresi, son 1 saatte yazılan kayıt, başarısız okuma,
   başarısız yazma, kayıp parti, bağlı istemci, bekleyen parti, canlı araç sayısı. Son okuma 30 sn'den eskiyse uyarı rengi
   (backend health check'teki eşikle aynı); kayıp parti > 0 ise kırmızı.

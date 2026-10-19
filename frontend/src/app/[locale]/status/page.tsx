@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
-import { getSystemStatus, SystemStatusLoading, SystemStatusPanel } from "@/features/system-status";
-import { apiInternalBaseUrl } from "@/shared/config.server";
+import { SystemStatusLoading, SystemStatusPanel } from "@/features/system-status";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -10,16 +9,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return { title: t("title") };
 }
 
-async function StatusContent() {
-  const initialData = await getSystemStatus(apiInternalBaseUrl).catch(() => undefined);
-  return <SystemStatusPanel initialData={initialData} initialError={!initialData} />;
-}
-
-export default async function StatusPage() {
-  // Cache Components açıkken taze veri isteği Suspense altında kalmalıdır.
+export default function StatusPage() {
+  // Cache Components açıkken URL'yi okuyan bileşen (dil değiştirici, useSearchParams) Suspense altında olmalıdır.
   return (
     <Suspense fallback={<div className="mx-auto max-w-6xl p-4 sm:p-6"><SystemStatusLoading /></div>}>
-      <StatusContent />
+      <SystemStatusPanel />
     </Suspense>
   );
 }

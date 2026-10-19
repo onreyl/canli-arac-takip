@@ -79,12 +79,4 @@ public sealed class LiveVehicleState(IOptions<StorageOptions> storageOptions)
             return new LiveSnapshot(_version, _vehicles.Values.ToList());
         }
     }
-
-    public VehiclePosition? Find(string vehicleId)
-    {
-        lock (_lock)
-        {
-            return _vehicles.GetValueOrDefault(vehicleId);
-        }
-    }
 }

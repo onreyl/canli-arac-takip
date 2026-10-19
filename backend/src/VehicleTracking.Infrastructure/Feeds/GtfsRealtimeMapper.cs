@@ -24,7 +24,6 @@ internal static class GtfsRealtimeMapper
     public static FeedSnapshot ToSnapshot(FeedMessage feed)
     {
         var positions = new List<VehiclePosition>(feed.Entity.Count);
-        int skipped = 0;
 
         foreach (FeedEntity entity in feed.Entity)
         {
@@ -32,17 +31,13 @@ internal static class GtfsRealtimeMapper
             {
                 positions.Add(position);
             }
-            else
-            {
-                skipped++;
-            }
         }
 
         DateTimeOffset? generatedAt = feed.Header.HasTimestamp
             ? DateTimeOffset.FromUnixTimeSeconds((long)feed.Header.Timestamp)
             : null;
 
-        return new FeedSnapshot(generatedAt, positions, skipped);
+        return new FeedSnapshot(generatedAt, positions);
     }
 
     private static bool TryMap(FeedEntity entity, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out VehiclePosition? position)

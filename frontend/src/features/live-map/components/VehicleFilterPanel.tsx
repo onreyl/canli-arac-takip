@@ -5,24 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import type { VehicleFilter } from "../filter/vehicleFilter";
-import { useVehicleFilterCount } from "../hooks/useVehicleFilterCount";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 type Props = {
   filter: VehicleFilter;
   urlKey: string;
-  nowMs: number;
+  total: number;
+  shown: number;
   onChange: (filter: VehicleFilter) => void;
 };
 
-export function VehicleFilterPanel({ filter, urlKey, nowMs, onChange }: Props) {
+export function VehicleFilterPanel({ filter, urlKey, total, shown, onChange }: Props) {
   const t = useTranslations("VehicleFilter");
   const format = useFormatter();
   const id = useId();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState({ urlKey, query: filter.query });
-  const { total, shown } = useVehicleFilterCount(filter, nowMs);
 
   // Geri/ileri gezinme bekleyen yerel aramadan üstündür; eski taslak URL'yi geri yazmamalıdır.
   if (draft.urlKey !== urlKey) setDraft({ urlKey, query: filter.query });

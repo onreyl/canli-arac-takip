@@ -71,7 +71,6 @@ internal sealed partial class PositionWriterWorker(
                 long start = Stopwatch.GetTimestamp();
                 int inserted = await writer.WriteAsync(batch.Positions, cancellationToken);
                 metrics.RecordWritten(inserted, Stopwatch.GetElapsedTime(start));
-                await buffer.AcknowledgeAsync(batch, cancellationToken);
                 return;
             }
             catch (StorageUnavailableException ex)
@@ -90,7 +89,6 @@ internal sealed partial class PositionWriterWorker(
                 metrics.RecordWriteFailure();
                 metrics.RecordDroppedBatch();
                 LogBatchDiscarded(ex, batch.Positions.Count);
-                await buffer.AcknowledgeAsync(batch, cancellationToken);
                 return;
             }
         }

@@ -47,9 +47,6 @@ internal sealed partial class InMemoryFeedBuffer : IFeedBuffer
 
     public bool TryDequeue(out PositionBatch? batch) => _channel.Reader.TryRead(out batch);
 
-    // Bellekte parti alındığı an tampondan çıkmış olur; onaylanacak bir şey yok.
-    public ValueTask AcknowledgeAsync(PositionBatch batch, CancellationToken cancellationToken) => ValueTask.CompletedTask;
-
     [LoggerMessage(Level = LogLevel.Error, Message = "Tampon dolu: en eski parti atıldı, {Count} konum kayboldu.")]
     private static partial void LogBatchDropped(ILogger logger, int count);
 }

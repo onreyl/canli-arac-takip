@@ -5,11 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
-import type { SystemStatus } from "@/shared/contracts/systemStatus";
 import { LocaleSwitcher } from "@/shared/ui/LocaleSwitcher";
 import { getSystemStatus } from "../api/getSystemStatus";
-
-type Props = { initialData?: SystemStatus; initialError?: boolean };
 
 function LastFetch({ value }: { value: string }) {
   const t = useTranslations("SystemStatus");
@@ -39,18 +36,17 @@ export function SystemStatusLoading() {
   );
 }
 
-export function SystemStatusPanel({ initialData, initialError = false }: Props) {
+export function SystemStatusPanel() {
   const t = useTranslations("SystemStatus");
   const navigation = useTranslations("Navigation");
   const format = useFormatter();
   const query = useQuery({
     queryKey: ["system-status"],
-    queryFn: ({ signal }) => getSystemStatus(undefined, signal),
+    queryFn: ({ signal }) => getSystemStatus(signal),
     refetchInterval: 5000,
-    initialData,
   });
   const data = query.data;
-  const hasError = query.isError || (initialError && !query.isFetchedAfterMount);
+  const hasError = query.isError;
   const counters = [
     "writtenLastHour", "failedFetchCount", "failedWriteCount", "droppedBatchCount",
     "connectedClients", "pendingBatches", "liveVehicles",

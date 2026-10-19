@@ -51,9 +51,6 @@ services:
         # NEXT_PUBLIC_* Next.js'te build anında koda gömülür; çalışma zamanı environment'ı yetmez.
         # Tarayıcı backend'e host üzerinden gittiği için localhost:5295 kullanılır.
         NEXT_PUBLIC_API_BASE_URL: http://localhost:5295
-    environment:
-      # Sistem durumu sayfasının ilk verisini sunucu, konteyner ağı içinden backend'den alır.
-      API_INTERNAL_BASE_URL: http://backend:8080
     ports:
       - "3000:3000"
     depends_on:

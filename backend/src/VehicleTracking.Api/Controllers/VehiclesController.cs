@@ -28,17 +28,6 @@ public sealed class VehiclesController(
         return new LiveSnapshotMessage(snapshot.Version, snapshot.Vehicles.Select(LiveVehicleDto.From).ToList());
     }
 
-    /// <summary>Tek aracın son durumu.</summary>
-    /// <response code="404">Araç son 3 saatte görülmedi.</response>
-    [HttpGet("{vehicleId}")]
-    [ProducesResponseType<LiveVehicleDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<LiveVehicleDto> GetById(string vehicleId)
-    {
-        VehiclePosition? position = liveState.Find(vehicleId);
-        return position is null ? NotFound() : LiveVehicleDto.From(position);
-    }
-
     /// <summary>
     /// Aracın konum geçmişi, en yeniden eskiye, sayfalı. Yalnızca saklama penceresi (son 3 saat) içinden.
     /// </summary>
