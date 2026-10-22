@@ -1,6 +1,6 @@
 # Bilinen Eksikler (README'nin "Bilinen eksikler" bölümünün ham maddesi)
 
-> Bu dosya README yazılırken (24-25 Ekim) README'ye taşınacak. Kararların gerekçesi: `docs/backend-review.md`.
+> README'nin "Bilinen eksikler" bölümü bu dosyanın özetidir. Senaryoların nasıl deneneceği: [resilience-tests.md](resilience-tests.md).
 
 ## 1. Disk tamponu yok: ani çökmede bellekteki birkaç saniyelik veri kaybolur
 

@@ -490,3 +490,8 @@ tmp/
 
 # Claude Code yerel önizleme ayarı
 .claude/
+
+# İç çalışma notları (diskte kalır, repoya girmez)
+CLAUDE.md
+/AGENTS.md
+docs/backend-review.md

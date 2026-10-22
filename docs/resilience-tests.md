@@ -162,7 +162,7 @@ kaçınılmaz boşluk; açılınca feed her aracın son konumunu verir.
 
 ## Test 7 — Silmenin 3 saat beklemeden gösterilmesi
 
-> ⚠️ Bu test **veritabanındaki verileri siler** (temiz başlangıç gerekiyor; bkz. backend-review madde 6).
+> ⚠️ Bu test **veritabanındaki verileri siler** (temiz başlangıç gerekiyor: chunk aralığı değişikliği sadece yeni chunk'ları etkiler, eski 15 dk'lık chunk'lar varken silme ancak ~20 dk sonra görülür).
 
 **Ne bekliyoruz:** saklama 5 dk'ya çekilince 5 dk'dan eski chunk'lar otomatik silinir; yazma ve sorgular etkilenmez.
 

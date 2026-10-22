@@ -272,4 +272,3 @@ Hacim günün saatine göre ~3 kat değişiyor; tasarım yoğun saate göre yap�
 | [docs/known-limitations.md](docs/known-limitations.md) | Bilinen eksikler, neden kabul edildikleri, nasıl önlenirdi |
 | [docs/frontend-decisions.md](docs/frontend-decisions.md) | Frontend kararları ve gerekçeleri |
 | [docs/requirements-map.md](docs/requirements-map.md) | Case dokümanındaki her maddenin koddaki karşılığı |
-| [docs/backend-review.md](docs/backend-review.md) | Backend'in zorunlu maddelere göre gözden geçirilmesi ve verilen kararlar |
