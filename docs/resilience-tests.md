@@ -50,7 +50,7 @@ O dakikalarda veri yoktur — **kaçınılmaz kayıp** (GTFS-RT geçmiş tutmaz)
 4. İnterneti geri aç. 10-20 sn içinde `Son başarılı okuma` güncelleniyor mu?
 5. Dakika bazında satır sorgusunu çalıştır: kesinti dakikalarında satır sayısı ~0 olmalı, sonra normale dönmeli.
 
-**Sonuç:** ……
+**Sonuç:** Çalıştırılmadı (bilgisayarın internetini kesmeyi gerektiriyor). Aynı kod yolu Test 2'deki HTTP hatası adımıyla denendi: `Entur'a ulaşılamadı` → başarısız okuma sayıldı, döngü durmadı.
 
 ## Test 2 — Kaynak bozuk yanıt dönüyor
 
@@ -72,7 +72,7 @@ O dakikalarda veri yoktur — **kaçınılmaz kayıp** (GTFS-RT geçmiş tutmaz)
    docker compose up -d backend
    ```
 
-**Sonuç:** ……
+**Sonuç (22 Ekim 08:28-08:30 Oslo):** Protobuf olmayan sayfa → 60 sn'de 21 kez `Entur yanıtı çözülemedi (bozuk protobuf)`, başarısız okuma 21, kayıp parti 0, uygulama ayakta (`/health` HTTP 200, `/health/live` 200). HTTP 404 adresi → 30 sn'de 11 kez `Entur'a ulaşılamadı`. Normal adrese dönünce 20 sn içinde okuma devam etti (okuma 258 ms). Bu sürede veri yok (dakika başına satır 08:28'de 7.415, 08:29'da 3.001; normal ~18-20 bin): kaynaktan okunamayan an, kaçınılmaz.
 
 ## Test 3 — Veritabanı birkaç dakika kapalı
 
@@ -106,7 +106,7 @@ O dakikalarda veri yoktur — **kaçınılmaz kayıp** (GTFS-RT geçmiş tutmaz)
 6. En fazla ~10 sn içinde `Bekleyen parti` 0'a inmeli.
 7. Dakika bazında satır sorgusu: kesinti dakikalarında **delik olmamalı** (sayılar normal seviyede).
 
-**Sonuç:** ……
+**Sonuç (22 Ekim 08:30:55-08:34:04 Oslo, DB 3 dk kapalı):** Okuma her 30 sn'de devam etti (okuma ~185-226 ms), canlı araç sayısı güncellenmeye devam etti (3.198 → 3.223). Bekleyen parti 5 → 31'e çıktı, başarısız yazma 16, kayıp parti 0. `/health` 503, `/health/live` 200, geçmiş ucu 503 + "Veritabanına şu an ulaşılamıyor", anlık durum ucu 200. DB açıldıktan sonra **5 sn içinde bekleyen parti 0**. Dakika başına satır kesinti boyunca normal (08:31: 17.042, 08:32: 17.187, 08:33: 19.355, 08:34: 19.476): **delik yok, kayıp yok.**
 
 ## Test 4 — Uygulama çalışırken yeniden başlatılıyor
 
@@ -132,7 +132,9 @@ kaçınılmaz boşluk; açılınca feed her aracın son konumunu verir.
 3. Log: `Kapanışta tampon boşaltılamadı, N parti kayboldu.` Bu, disk tamponu olmadığı için önlenemeyen kayıptır.
 4. `docker compose start db` (backend DB gelene kadar bekler, sonra devam eder).
 
-**Sonuç:** ……
+**Sonuç — Test 4 (22 Ekim 08:35 Oslo):** Log: `Application is shutting down...` → `Kapanışta tampondan 0 parti yazıldı.` → `Veritabanı hazır` → `Now listening`. Yeniden başlatma ~1 sn sürdü, toplama 20 sn içinde normaldi. Dakika başına satır 08:35'te 18.571 (normal): görünür düşüş yok.
+
+**Sonuç — Test 4b (22 Ekim 08:36:25-08:37:47 Oslo):** DB 1 dk kapalıyken bekleyen parti 11 oldu; yeniden başlatmada log: **`Kapanışta tampon boşaltılamadı, 10 parti kayboldu.`** Dakika başına satır 08:36: 6.055, 08:37: 7.561, 08:38: 10.265 (normal ~18-20 bin). Bilinen eksik, beklendiği gibi; `docs/known-limitations.md` madde 1.
 
 ## Test 5 — WebSocket istemcisi bağlantıyı koparıyor
 
@@ -143,7 +145,7 @@ kaçınılmaz boşluk; açılınca feed her aracın son konumunu verir.
 3. Tekrar **No throttling** seç: rozet kendiliğinden "bağlı" olur, araç sayısı güncellenir.
 4. (Alternatif) Sunucu tarafından koparma: `docker compose stop backend`, 30 sn, `docker compose start backend`.
 
-**Sonuç:** ……
+**Sonuç (22 Ekim 08:38-08:40 Oslo):** Tarayıcı yerine aynı SignalR protokolünü konuşan bir .NET test istemcisiyle (`withAutomaticReconnect`). Bağlanınca snapshot (3.009 araç). Backend 08:38:33'te durduruldu → istemci "yeniden bağlanıyor". Backend 08:39:04'te açıldı → istemci kendiliğinden yeniden bağlandı ve **yeni snapshot** aldı (2.977 araç), sonra update'ler devam etti. (Tarayıcıdaki rozet ve şerit davranışı 15 Ekim'de doğrulanmıştı: `docs/frontend-decisions.md` madde 13.)
 
 ## Test 6 — Yavaş istemci
 
@@ -158,7 +160,7 @@ kaçınılmaz boşluk; açılınca feed her aracın son konumunu verir.
      seyrekleşip büyüyebilir.)
 4. B'de tekrar **No throttling**.
 
-**Sonuç:** ……
+**Sonuç (22 Ekim 08:40:44-08:43:44 Oslo):** İki .NET test istemcisi 3 dk: HIZLI (mesajı hemen işler) ve yavaş (her mesajda 15 sn bekler). 90. sn'de sistem durumu normal: okuma 201 ms, yazma 49 ms, bağlı istemci 2, kayıp parti 0. HIZLI 32 update aldı ve sonuna kadar güncel kaldı; yavaş istemci 11 update işleyebildi ve geride kaldı (son aldığı v34, o sırada HIZLI v54'teydi). **Diğer istemci ve veri toplama etkilenmedi.** Not: bu yerel (loopback) testte yavaş istemcinin mesajları işletim sisteminin TCP tamponlarında birikti; sunucu tarafı birleştirme ancak bu tamponlar dolunca devreye girer, o yüzden yavaş istemci önce eski mesajları sırayla aldı. Birleştirmenin kendisi `LiveClientFeedTests` ile doğrulanıyor.
 
 ## Test 7 — Silmenin 3 saat beklemeden gösterilmesi
 
@@ -192,7 +194,7 @@ kaçınılmaz boşluk; açılınca feed her aracın son konumunu verir.
    ```
    (Saklama 3 saate döner. Yeni chunk'lar yine 15 dk olur; 1 dk'lık eski chunk'lar zamanla silinir.)
 
-**Sonuç:** ……
+**Sonuç:** Çalıştırılmadı (veritabanını siler). Silmenin normal ayarla çalıştığının kanıtı `docs/observations.md` "Saklama / silme gerçekte çalışıyor" (14 Ekim: silme işi 71 kez çalıştı, 0 hata).
 
 ---
 
@@ -200,11 +202,11 @@ kaçınılmaz boşluk; açılınca feed her aracın son konumunu verir.
 
 | Senaryo | Ne oldu | Veri kaybı | Not |
 |---|---|---|---|
-| 1. Kaynak erişilemez | | Kesinti süresi kadar (kaçınılmaz) | |
-| 2. Bozuk yanıt | | Yok (bozuk veri DB'ye girmez) | |
-| 3. DB birkaç dk kapalı | | Yok | |
-| 4. Uygulama yeniden başlatma | | Birkaç sn (kapalı kalınan süre) | |
-| 4b. DB kapalıyken yeniden başlatma | | Tampondaki partiler (bilinen eksik) | |
-| 5. İstemci kopar | | Yok | |
-| 6. Yavaş istemci | | Yok | |
-| 7. Silme gösterimi | | — | |
+| 1. Kaynak erişilemez | Çalıştırılmadı; aynı kod yolu Test 2'nin HTTP hatası adımında denendi | Kesinti süresi kadar (kaçınılmaz) | |
+| 2. Bozuk yanıt | Başarısız okuma sayıldı, uygulama ayakta, adres düzelince 20 sn içinde devam | Okunamayan süre (kaçınılmaz); bozuk veri DB'ye girmedi | 22 Ekim |
+| 3. DB 3 dk kapalı | Okuma ve canlı durum devam etti, bekleyen parti 31'e çıktı, DB dönünce 5 sn'de 0; geçmiş ucu 503 | **Yok** (dakika başına satırda delik yok) | 22 Ekim |
+| 4. Uygulama yeniden başlatma | Düzgün kapanış, ~1 sn'de geri geldi | Görünür kayıp yok | 22 Ekim |
+| 4b. DB kapalıyken yeniden başlatma | `Kapanışta tampon boşaltılamadı, 10 parti kayboldu.` | **10 parti** (bilinen eksik) | 22 Ekim |
+| 5. İstemci kopar | Otomatik yeniden bağlandı, yeni snapshot aldı | Yok | 22 Ekim, .NET test istemcisi |
+| 6. Yavaş istemci | Diğer istemci ve toplama etkilenmedi; yavaş istemci geride kaldı | Yok | 22 Ekim, .NET test istemcisi |
+| 7. Silme gösterimi | Çalıştırılmadı (DB'yi siler); normal ayarla silme 14 Ekim'de doğrulandı | — | |

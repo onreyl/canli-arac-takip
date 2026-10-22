@@ -144,12 +144,23 @@ Feature'lar birbirini yalnızca `index.ts` üzerinden kullanır. Kararların ger
 | **WebSocket istemcisi kopar** | Rozet "yeniden bağlanıyor" → "koptu"; harita son bilinen konumlarla kalır, otomatik yeniden bağlanır. | Yok. | Yeniden bağlanınca yeni `snapshot` elindeki listenin yerine geçer; arada kaçan önemsizdir. |
 | **WebSocket istemcisi çok yavaş okur** | Yalnızca kendi gönderim döngüsü bekler; diğer istemciler ve veri toplama etkilenmez. | O istemci aynı aracın **ara** konumlarını atlar (bilinçli). | Bekleyenler araç kimliğine göre birleşir; son konum her zaman gider, bellek araç sayısıyla sınırlı. |
 
-**Doğrulama durumu:** DB'nin kısa süre (20 sn) kapatılması (dakika bazında delik yok) ve backend'in durdurulup açılması (arayüz kendiliğinden
-toparlandı) geliştirme sırasında denendi. Yavaş istemci birleştirmesi birim testleriyle doğrulanıyor (`LiveClientFeedTests`).
-Bozuk yanıt koddan: `EnturFeedSource` çözülemeyen protobuf'u, HTTP hatasını ve zaman aşımını tek bir `FeedUnavailableException`'a
-çevirir; `FeedPollingWorker` bunu yakalayıp başarısız okumayı sayar ve turu atlar. Beklenmeyen bir hata da en dışta yakalanır, çünkü
-.NET'te arka plan servisinden kaçan hata varsayılan olarak tüm uygulamayı durdurur; bu yüzden döngü durmaz.
-**TODO: test sonucu** — [docs/resilience-tests.md](docs/resilience-tests.md)'deki 7 senaryonun son çalıştırma sonuçları buraya eklenecek.
+**Test sonuçları (22 Ekim, sabah yoğun saati 08:28-08:44 Oslo; ayrıntı ve komutlar: [docs/resilience-tests.md](docs/resilience-tests.md)):**
+
+| Senaryo | Sonuç | Veri kaybı |
+|---|---|---|
+| Bozuk yanıt / HTTP hatası | Başarısız okuma sayıldı, uygulama ayakta; adres düzelince 20 sn içinde devam | Okunamayan süre (kaçınılmaz) |
+| DB 3 dk kapalı | Okuma ve canlı durum devam etti; bekleyen parti 31'e çıktı, DB dönünce 5 sn'de 0; geçmiş ucu 503 | **Yok** (dakika başına satırda delik yok) |
+| Uygulama yeniden başlatma | Düzgün kapanış, ~1 sn'de geri geldi | Görünür kayıp yok |
+| DB kapalıyken yeniden başlatma | `Kapanışta tampon boşaltılamadı, 10 parti kayboldu.` | **10 parti** (bilinen eksik) |
+| İstemci kopar | Otomatik yeniden bağlandı, yeni snapshot aldı | Yok |
+| Yavaş istemci | Diğer istemci ve toplama etkilenmedi | Yok |
+
+İstemci senaryoları tarayıcı yerine aynı SignalR protokolünü konuşan bir .NET test istemcisiyle denendi. Kaynağın tamamen erişilemez
+olması (internet kesme) ve kısa saklamayla silme gösterimi (veritabanını siler) bu turda çalıştırılmadı; normal ayarla silmenin
+çalıştığı 14 Ekim'de doğrulandı ([docs/observations.md](docs/observations.md)). Yavaş istemcide, yerel testte işletim sisteminin TCP
+tamponları büyük olduğu için sunucu tarafı birleştirme devreye girmedi; birleştirme mantığı `LiveClientFeedTests` ile doğrulanıyor.
+Bozuk yanıtta döngünün durmamasının sebebi koddan: `EnturFeedSource` çözülemeyen protobuf'u, HTTP hatasını ve zaman aşımını tek bir
+`FeedUnavailableException`'a çevirir; `FeedPollingWorker` bunu yakalayıp sayar ve turu atlar; beklenmeyen hatalar da en dışta yakalanır.
 
 ## Veri akışında yapılan gözlemler
 
@@ -234,12 +245,12 @@ başına en fazla bir kez toplu günceller; ~3.000 aracın her değişikliği Re
 |---|---|---|
 | Yanıt boyutu | ~1,6-1,7 MB, gzip ile ~450 KB | 12-13 Ekim |
 | Okuma süresi (çekme + çözme) | ortalama 251 ms, en fazla 1.651 ms | 13 Ekim 20:03-20:23 Oslo, 401 tur (keşif aracı) |
-| Backend okuma döngüsü süresi (`lastFetchDurationMs`) | **TODO: ölçülecek** | Compose'la çalışan backend, yoğun saat |
+| Backend okuma döngüsü süresi (`lastFetchDurationMs`) | ortalama 199 ms (185-267 ms) | 22 Ekim 08:23-08:28 Oslo (sabah yoğun saati), Compose'la çalışan backend, 20 örnek |
 | Yazılan satır / saat | **~949 bin** (yoğun saat), ~358 bin (akşam) | 14 Ekim 15:05-16:05 Oslo, gerçek backend; 13 Ekim akşam |
 | 3 saatlik satır (saklama penceresi) | ~2,85 milyon (yoğun), ~1,07 milyon (akşam) | Yukarıdakinden hesap |
 | Disk | satır başına ~407 byte (tablo 227 MB + index 208 MB, 1.120.117 satır) → 1 saat ~390 MB, **3 saat ~1,15 GB** (yoğun) | 14 Ekim, `hypertable_detailed_size` |
-| Canlı araç sayısı | ~3.200 (yoğun saat), ~2.150 (öğlen) | 14 Ekim |
-| DB'ye yazma süresi (`lastWriteDurationMs`) | **TODO: ölçülecek** | Normal akış ve silme işi çalışırken |
+| Canlı araç sayısı | ~3.200 (akşam yoğun saati), ~2.150 (öğlen) / 3.346-3.396 (sabah yoğun saati) | 14 Ekim / 22 Ekim |
+| DB'ye toplu yazma süresi (`lastWriteDurationMs`) | ortalama 74 ms (49-280 ms) | Aynı ölçüm (silme kontrolü her dakika çalışıyordu; bu 5 dk içinde chunk düşürülüp düşürülmediği ayrıca izlenmedi) |
 | Geçmiş sorgusu (1 sayfa) | ~45 ms | 14 Ekim |
 | Arayüzde bir güncellemenin işlenme süresi (store + GeoJSON + `setData`) | ~1-4 ms | 15 Ekim, ~2.300 araç; rozette canlı gösteriliyor |
 

@@ -68,6 +68,19 @@ Tarih: 12-13 Ekim 2026. Ölçümler kısa sürelidir (dakikalar); uzun ölçüml
 - Yoğun saat ölçümü gerçek backend'le yapıldı (14 Ekim, 70 dk kesintisiz çalışma). Satır sayısı, ölçüm zamanı 16:05-17:05 (TR) aralığındaki satırların DB'deki sayımıdır. Bu sırada canlı araç sayısı ~3.200'dü (öğlen ~2.150).
 - Aynı 70 dakikada: hata 0, kayıp parti 0, başarısız okuma 0, başarısız yazma 0.
 
+## Backend sayaçlarından ölçüm (22 Ekim, sabah yoğun saati)
+
+Docker Compose ile çalışan backend, `GET /api/system/status`'tan 5 dk boyunca 15 sn'de bir 20 örnek; 22 Ekim 08:23-08:28 (Oslo).
+Açılıştaki ilk büyük yazma örneği bozmasın diye backend açıldıktan 1 dk sonra başlandı.
+
+| Ölçüm | Ortalama | En az | En fazla |
+|---|---|---|---|
+| Okuma süresi (`lastFetchDurationMs`: çekme + protobuf çözme) | 199 ms | 185 ms | 267 ms |
+| DB'ye toplu yazma süresi (`lastWriteDurationMs`) | 74 ms | 49 ms | 280 ms |
+
+- Son 1 saatteki en uzun yazma (`maxWriteDurationLastHourMs`): 339 ms (açılıştaki ilk büyük parti).
+- Canlı araç: 3.346-3.396. Başarısız okuma 0, başarısız yazma 0, kayıp parti 0.
+
 ## Disk boyutu (gerçek veri, 14 Ekim)
 
 1.120.117 satır için `hypertable_detailed_size`:
