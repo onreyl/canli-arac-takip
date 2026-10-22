@@ -41,7 +41,7 @@ Genel ilke: dokümanın istediği her özellik var, ama en sade haliyle. Fazlada
 ## 5. Adresler, dil, URL'de durum
 
 - Dil ön eki: `/tr/...`, `/en/...` (varsayılan `tr`). Kütüphane: **next-intl**. Tüm metinler `messages/tr.json` ve `messages/en.json`'da; kodda metin yok.
-- Filtre ve seçili araç URL'de: `?q=...&route=...&active=1&vehicle=...`.
+- Filtre ve seçili araç URL'de: `?q=...&all=1&vehicle=...&range=...` (`q` arama metni, `all=1` eski araçlar da görünsün, `vehicle` seçili araç, `range` geçmiş aralığı).
   - **Neden:** sayfa yenilendiğinde ya da bağlantı paylaşıldığında aynı ekran gelsin (doküman istiyor).
   - URL tek doğru kaynak: filtre değişince URL güncellenir, ekran URL'i okur.
 
@@ -153,7 +153,7 @@ TanStack Query'nin `isPending / isError / data` alanlarından türetilir; canlı
   Neden: veri Norveç'in ve senaryodaki ulaşım otoritesi Oslo saatiyle çalışır; tek yerde tanımlı olunca sunucuda üretilen HTML ile
   tarayıcının gösterdiği saat aynı olur. (Codex ilk sürümde sadece bu sayfada İstanbul saatini gömmüştü; geçmiş listesi ise
   tarayıcı saatini kullanıyordu → iki ekranda farklı saat. Tek dilime çekildi.)
-- **Doğrulandı:** `/tr/status`'un düz HTML'inde (JavaScript çalışmadan) veriler var → sunucu tarafı ilk yükleme çalışıyor.
+- **19 Ekim'den beri:** sunucu tarafında ilk veri çekilmiyor (yukarıdaki sadeleştirme); sayfa önce iskeleti gösterir, veriler tarayıcıda gelir. (15 Ekim'deki "düz HTML'de veriler var" doğrulaması eski sürüme aitti.)
 
 ## 12. Kurulumda karşılaşılan sorunlar ve çözümleri (görüşmede sorulabilir)
 

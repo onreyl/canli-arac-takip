@@ -123,6 +123,6 @@ Ayrıntılı senaryolar ve deney sonuçları: `docs/resilience-tests.md`, biline
 |---|---|---|
 | Tek public repo, `/backend`, `/frontend` | Repo kökü | ✅ |
 | `docker compose up` ile DB + backend + frontend; backend hemen toplar | `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile` | ✅ DB healthcheck → backend; `DatabaseInitializer` migration'ı kendisi uygular. |
-| README: çalıştırma, mimari + veri akışı diyagramı, sorumluluklar, video linki, 5 soru | `docs/architecture.md`, `docs/observations.md`, `docs/resilience-tests.md`, `docs/known-limitations.md` (kaynak) | ⏳ README henüz yok (24-25 Ekim). |
+| README: çalıştırma, mimari + veri akışı diyagramı, sorumluluklar, video linki, 5 soru | `docs/architecture.md`, `docs/observations.md`, `docs/resilience-tests.md`, `docs/known-limitations.md` (kaynak) | ✅ `README.md` |
 | Ölçülen sayılar: okuma döngüsü süresi, saatlik kayıt, arayüzde güncelleme işleme süresi | `lastFetchDurationMs` + `writtenLastHour` (sistem durumu), `lastUpdateDurationMs` (`liveVehiclesStore.ts` + `LiveMap.tsx`, `ConnectionBadge`'de gösterilir) | Ölçüm araçları hazır; sayılar README'ye yazılacak. |
 | Conventional Commits, repoda gerçek sır yok | git geçmişi, `.env.example`, user-secrets | ✅ |
