@@ -16,8 +16,11 @@ internal sealed class EnturFeedSource(HttpClient http, IOptions<EnturOptions> op
         FeedMessage feed;
         try
         {
-            byte[] bytes = await http.GetByteArrayAsync(options.Value.VehiclePositionsUrl, cancellationToken);
-            feed = FeedMessage.Parser.ParseFrom(bytes);
+            // ParseFrom senkron okur; varsayılan tamponlama ağ okumasının iş parçacığını bloklamasını önler.
+            using HttpResponseMessage response = await http.GetAsync(options.Value.VehiclePositionsUrl, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            feed = FeedMessage.Parser.ParseFrom(stream);
         }
         catch (HttpRequestException ex)
         {
