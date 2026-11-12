@@ -42,9 +42,10 @@ public sealed partial class LiveUpdateDispatcher(
 
     public void Publish(LiveUpdate update)
     {
+        LiveDtoUpdate dto = LiveDtoUpdate.From(update);
         foreach (LiveClientFeed feed in _clients.Values)
         {
-            feed.Merge(update);
+            feed.Merge(dto);
         }
     }
 

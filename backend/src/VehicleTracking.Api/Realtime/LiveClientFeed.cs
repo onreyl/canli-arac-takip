@@ -29,14 +29,17 @@ internal sealed class LiveClientFeed : IDisposable
 
     public CancellationToken Cancellation => _cts.Token;
 
-    public void Merge(LiveUpdate update)
+    public void Merge(LiveUpdate update) => Merge(LiveDtoUpdate.From(update));
+
+    public void Merge(LiveDtoUpdate update)
     {
         lock (_lock)
         {
-            foreach (var position in update.Upserts)
+            foreach (LiveVehicleDto vehicle in update.Upserts)
             {
-                _upserts[position.VehicleId] = LiveVehicleDto.From(position);
-                _removals.Remove(position.VehicleId);
+                // Immutable record olan DTO örneklerini istemciler arasında paylaşmak güvenlidir.
+                _upserts[vehicle.VehicleId] = vehicle;
+                _removals.Remove(vehicle.VehicleId);
             }
 
             foreach (string vehicleId in update.Removals)

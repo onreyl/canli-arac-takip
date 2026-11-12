@@ -8,6 +8,26 @@ namespace VehicleTracking.UnitTests.Api;
 public sealed class LiveClientFeedTests
 {
     [Fact]
+    public void Merge_SameDtoUpdateAcrossFeeds_SharesDtoInstances()
+    {
+        var state = new LiveVehicleState(TestData.StorageOptions);
+        using var firstFeed = new LiveClientFeed();
+        using var secondFeed = new LiveClientFeed();
+        firstFeed.TakePending(state, out _);
+        secondFeed.TakePending(state, out _);
+        var position = TestData.Position("entity", "vehicle", TestData.Now);
+        var dto = LiveDtoUpdate.From(new LiveUpdate(1, [position], []));
+
+        firstFeed.Merge(dto);
+        secondFeed.Merge(dto);
+        var first = Assert.IsType<LiveUpdateMessage>(firstFeed.TakePending(state, out _));
+        var second = Assert.IsType<LiveUpdateMessage>(secondFeed.TakePending(state, out _));
+
+        Assert.Same(Assert.Single(dto.Upserts), Assert.Single(first.Upserts));
+        Assert.Same(Assert.Single(first.Upserts), Assert.Single(second.Upserts));
+    }
+
+    [Fact]
     public void TakePending_NewFeed_ReturnsFullSnapshot()
     {
         var state = new LiveVehicleState(TestData.StorageOptions);

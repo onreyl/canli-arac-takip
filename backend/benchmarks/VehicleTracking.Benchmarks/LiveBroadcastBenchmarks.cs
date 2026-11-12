@@ -43,9 +43,10 @@ public class LiveBroadcastBenchmarks
     public int Broadcast()
     {
         int byteCount = 0;
+        var dto = LiveDtoUpdate.From(_update);
         foreach (var client in _clients)
         {
-            client.Merge(_update);
+            client.Merge(dto);
             object message = client.TakePending(_state, out _);
             byteCount += JsonSerializer.SerializeToUtf8Bytes(message, message.GetType(), _json).Length;
         }
