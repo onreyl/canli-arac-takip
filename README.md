@@ -23,7 +23,7 @@ platform. Backend ASP.NET Core (.NET 10), frontend Next.js (App Router).
 
 | Katman | Kullanılanlar |
 |---|---|
-| Backend | ASP.NET Core (.NET 10), EF Core + Npgsql, SignalR, Google.Protobuf, Swagger (OpenAPI), xUnit |
+| Backend | ASP.NET Core (.NET 10), EF Core + Npgsql, SignalR, Google.Protobuf, Swagger (OpenAPI), FluentValidation, xUnit, BenchmarkDotNet |
 | Veritabanı | PostgreSQL 17 + TimescaleDB 2.30 (hypertable, retention policy) |
 | Frontend | Next.js 16 (App Router), React 19, TypeScript (strict), TanStack Query, Zustand, zod, next-intl, Tailwind CSS + shadcn/ui, MapLibre GL JS (OpenFreeMap altlık) |
 | Çalıştırma | Docker Compose |
@@ -62,7 +62,7 @@ docker compose down        # konteynerleri durdur, veriyi koru
 docker compose down -v     # veritabanı verisini de sil
 ```
 
-**Testler:** `dotnet test backend/tests/VehicleTracking.UnitTests` (38 birim testi).
+**Testler:** `dotnet test backend/tests/VehicleTracking.UnitTests` (86 birim testi).
 
 ## Mimari ve veri akışı
 
@@ -71,7 +71,8 @@ flowchart LR
     Entur["Entur GTFS-RT<br/>(protobuf, ~450 KB gzip)"]
 
     subgraph Backend["Backend (ASP.NET Core)"]
-        Poller["FeedPollingWorker<br/>3 sn'de bir çeker"]
+        Poller["FeedPollingWorker<br/>3 sn'de bir turu başlatır"]
+        Cycle["FeedIngestionCycle<br/>çekme, ayıklama, yayın, tampon"]
         Ingestor["FeedIngestor<br/>yeni konumları ayıklar"]
         Buffer[("InMemoryFeedBuffer<br/>bellek tamponu")]
         Writer["PositionWriterWorker<br/>toplu yazma, tekrar dener"]
@@ -83,24 +84,28 @@ flowchart LR
     DB[("PostgreSQL + TimescaleDB<br/>vehicle_positions hypertable<br/>retention: 3 saat")]
     Web["Frontend (Next.js)"]
 
-    Entur -- "HTTP GET" --> Poller --> Ingestor
-    Ingestor -- "kalıcılık kolu" --> Buffer --> Writer -- "INSERT ... ON CONFLICT DO NOTHING" --> DB
-    Ingestor -- "canlı kol" --> Live --> Dispatcher -- "SignalR: snapshot + update" --> Web
+    Poller -- "RunOnceAsync" --> Cycle
+    Entur -- "HTTP GET (IFeedSource)" --> Cycle
+    Cycle -- "Process" --> Ingestor
+    Cycle -- "kalıcılık kolu" --> Buffer --> Writer -- "INSERT ... ON CONFLICT DO NOTHING" --> DB
+    Cycle -- "canlı kol" --> Live
+    Cycle -- "Publish" --> Dispatcher -- "SignalR: snapshot + update" --> Web
     Web -- "geçmiş, sistem durumu" --> Api
     Api -- "geçmiş (keyset sayfalama)" --> DB
     Api -- "anlık durum" --> Live
 ```
 
 **Bir konumun yolculuğu:**
-1. `FeedPollingWorker` 3 sn'de bir Entur'dan feed'i çeker (gzip). Protobuf, Infrastructure katmanında kendi `VehiclePosition` tipimize çevrilir.
+1. `FeedPollingWorker` açılışta ve `PeriodicTimer` ile her `PollInterval`'da (varsayılan 3 sn) `IFeedIngestionCycle.RunOnceAsync` çağırır.
+   `FeedIngestionCycle`, `IFeedSource` üzerinden Entur'dan feed'i çeker (gzip); Infrastructure protobuf'u `VehiclePosition` tipimize çevirir.
 2. `FeedIngestor` feed zamanı öncekinden yeni değilse turu atlar; yeniyse yalnızca daha önce görülmemiş `(entity_id, measured_at)`
    çiftlerini ve son 3 saatin ölçümlerini bırakır.
-3. Yeni konumlar **iki kola** ayrılır:
+3. `FeedIngestionCycle` yeni konumları önce canlı duruma uygular ve yayınlar, ardından tampona koyar. **İki kol** birbirinden bağımsızdır; canlı yayın hatası tampona yazmayı engellemez:
    - **Kalıcılık kolu:** bellek tamponuna girer; `PositionWriterWorker` tek sorguda (`unnest` + `ON CONFLICT DO NOTHING`) TimescaleDB'ye
      yazar. DB yoksa aynı partiyi 1 → 10 sn artan beklemeyle tekrar dener; yazma tekrar güvenli olduğu için çift kayıt oluşmaz.
    - **Canlı kol:** `LiveVehicleState`'teki araç başına son konum güncellenir, `LiveUpdateDispatcher` değişiklikleri her istemciye
-     kendi gönderim döngüsüyle yollar. **Bu kol veritabanına bağlı değildir:** DB kapalıyken de harita akar.
-4. Yeni bağlanan (ya da yeniden bağlanan) istemci önce tam görüntüyü (`snapshot`), sonra değişiklikleri (`update`) alır.
+     kendi gönderim döngüsüyle yollar. `Publish`, güncellemeyi bir kez `LiveDtoUpdate`'e çevirir; istemciler aynı DTO'ları paylaşır. **Bu kol veritabanına bağlı değildir:** DB kapalıyken de harita akar.
+4. Yeni bağlanan (ya da yeniden bağlanan) istemci önce tam görüntüyü (`snapshot`), sonra değişiklikleri (`update`) alır. `LiveVehicleState.GetSnapshot` sürüm değişmedikçe aynı görüntüyü döndürür; REST ve SignalR dönüşümü `LiveSnapshotMessage.From` ile yapılır.
 5. Silme uygulama kodunda değil: TimescaleDB'nin retention policy'si süresi dolan chunk'ları bütün olarak atar.
 
 Ayrıntı: [docs/architecture.md](docs/architecture.md).
@@ -112,9 +117,11 @@ Ayrıntı: [docs/architecture.md](docs/architecture.md).
 | Proje | Sorumluluk ve kilit sınıflar |
 |---|---|
 | `VehicleTracking.Domain` | `VehiclePosition` (değişmez kayıt) ve kuralları: `IsDeadRun`, `IsWithinRetention`. Hiçbir şeye bağımlı değil. |
-| `VehicleTracking.Application` | Arayüzler (`IFeedSource`, `IFeedBuffer`, `IPositionWriter`, `IVehicleHistoryReader`, `ILiveUpdatePublisher`) ve karar mantığı: `FeedIngestor` (hangi konum yeni?), `LiveVehicleState` (canlı durum), `IngestionMetrics` (sistem durumu sayaçları). |
+| `VehicleTracking.Application` | Arayüzler (`IFeedSource`, `IFeedBuffer`, `IPositionWriter`, `IVehicleHistoryReader`, `ILiveUpdatePublisher`, `IFeedIngestionCycle`, `IFeedIngestor`, `ILiveVehicleStore`, `IIngestionMetrics`, `IHistoryQueryService`) ve uygulamaları: `FeedIngestionCycle` (tek çekme turu), `FeedIngestor` (yeni konumları ayıklama), `LiveVehicleState` (canlı durum), `IngestionMetrics` (sayaçlar), `HistoryQueryService` + `HistoryQueryValidator` (geçmiş sorgusu ve doğrulama). `LatestByKey`, ayıklama ve canlı durumda anahtar başına en yeni değeri tutar. |
 | `VehicleTracking.Infrastructure` | `EnturFeedSource` + `GtfsRealtimeMapper` (HTTP + protobuf → domain; protobuf tipleri `internal`, dışarı sızmaz), `NpgsqlPositionWriter` (toplu yazma), `EfVehicleHistoryReader` (keyset sayfalı geçmiş), `DatabaseInitializer` (migration + hypertable + retention policy), `InMemoryFeedBuffer`. |
-| `VehicleTracking.Api` | Host: `FeedPollingWorker` ve `PositionWriterWorker` (arka plan servisleri), `VehiclesHub` + `LiveUpdateDispatcher` + `LiveClientFeed` (SignalR, yavaş istemci için birleştirme), `VehiclesController` ve `SystemController` (REST), health check'ler, `DatabaseUnavailableExceptionHandler` (DB yokken 503). |
+| `VehicleTracking.Api` | Host: `FeedPollingWorker` (çekme zamanlayıcısı) ve `PositionWriterWorker` (tampondan yazma), `VehiclesHub` + `LiveUpdateDispatcher` + `LiveClientFeed` (SignalR, `ILiveConnectionRegistry` üzerinden bağlantı kaydı, yavaş istemci için birleştirme), `VehiclesController` ve `SystemController` (REST), health check'ler, `DatabaseUnavailableExceptionHandler` (DB yokken 503). |
+
+Performans projesi: `backend/benchmarks/VehicleTracking.Benchmarks` (BenchmarkDotNet; feed okuma, canlı yayın ve canlı durum ölçümleri). Sonuçlar: [docs/observations.md → Performans ölçümü](docs/observations.md#performans-ölçümü-önce--sonra-12-kasım).
 
 **REST uçları:** `GET /api/vehicles` (anlık durum), `GET /api/vehicles/{id}/history?from&to&pageSize&cursor` (son 3 saat, keyset
 sayfalı), `GET /api/system/status` (son başarılı okuma, son 1 saatte yazılan, başarısız deneme, bağlı istemci + teşhis sayaçları).
@@ -160,7 +167,7 @@ olması (internet kesme) ve kısa saklamayla silme gösterimi (veritabanını si
 çalıştığı 14 Ekim'de doğrulandı ([docs/observations.md](docs/observations.md)). Yavaş istemcide, yerel testte işletim sisteminin TCP
 tamponları büyük olduğu için sunucu tarafı birleştirme devreye girmedi; birleştirme mantığı `LiveClientFeedTests` ile doğrulanıyor.
 Bozuk yanıtta döngünün durmamasının sebebi koddan: `EnturFeedSource` çözülemeyen protobuf'u, HTTP hatasını ve zaman aşımını tek bir
-`FeedUnavailableException`'a çevirir; `FeedPollingWorker` bunu yakalayıp sayar ve turu atlar; beklenmeyen hatalar da en dışta yakalanır.
+`FeedUnavailableException`'a çevirir; `FeedIngestionCycle` bunu yakalayıp sayar ve turu atlar; beklenmeyen hataları `FeedPollingWorker` yakalar.
 
 ## Veri akışında yapılan gözlemler
 
@@ -270,7 +277,7 @@ Hacim günün saatine göre ~3 kat değişiyor; tasarım yoğun saate göre yap�
   sunucu tarafı birleştirme ancak tamponlar dolunca devreye giriyor.
 - **Kapsam dışı bırakılan artı puan maddeleri** (öncelik zorunlu maddelere verildi): Service Alerts, Trip Updates, statik GTFS ile hat/durak
   adları (şu an kimlikler gösteriliyor), Testcontainers entegrasyon testleri, frontend testleri, mimari kuralların otomatik zorlanması, JWT.
-  Yapılanlar: backend birim testleri (38), health check uçları.
+  Yapılanlar: backend birim testleri (86), health check uçları.
 - **Geçmiş aralığı** serbest başlangıç/bitiş yerine hazır seçenekler (son 15 dk / 30 dk / 1 saat / 3 saat).
 
 ## Dokümanlar

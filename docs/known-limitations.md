@@ -43,5 +43,5 @@ Ekip liderinin "önceliklendirme senin kararın" cevabı üzerine zorunlu maddel
 - Mimari kuralların otomatik zorlanması (ör. katman bağımlılık testleri)
 - JWT ile uç noktaların korunması
 
-Yapılan artı puan maddeleri: backend birim testleri (xUnit, `backend/tests/VehicleTracking.UnitTests`: ayıklama, canlı durum,
-yavaş istemci birleştirmesi, imleç kodlama, sayaçlar, DB yokken 503), health check uçları (`/health/live`, `/health`).
+Yapılan artı puan maddeleri: backend birim testleri (xUnit, `backend/tests/VehicleTracking.UnitTests`: 86 test; çekme turu, ayıklama, `LatestByKey`, canlı durum,
+yavaş istemci birleştirmesi, geçmiş sorgusu ve doğrulama, imleç kodlama, kullanıcı metinleri, sayaçlar, DB yokken 503), health check uçları (`/health/live`, `/health`).
