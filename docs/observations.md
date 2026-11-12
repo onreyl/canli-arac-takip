@@ -161,3 +161,26 @@ MOR 125, OST 120, (boş sefer) 107, FIN 105, VKT 90, VYG 68, VYX 52, TEL 52, VYB
 - Feed zamanı değişmemişse veya geri gitmişse tur atlanabilir.
 - 3 saatten eski ölçümlerin yazılıp yazılmayacağı, haritada gösterilip gösterilmeyeceği kararı gerekiyor.
 - Haritadaki "araç" kavramı varlık mı, araç kimliği mi (aracın en yeni varlığı) olacak, karar gerekiyor.
+
+## Performans ölçümü: önce / sonra (12 Kasım)
+
+BenchmarkDotNet 0.15.8, `--job short` (3 ölçüm; hata payı geniş, küçük farklar gürültü olabilir). AMD Ryzen 7 5800X, .NET 10.
+Veri: gerçek Entur feed'inin kaydedilmiş bir kopyası (`backend/benchmarks/VehicleTracking.Benchmarks/data`), ~2.600 canlı araç,
+turda 1.500 yeni konum. Komut: `dotnet run -c Release --project backend/benchmarks/VehicleTracking.Benchmarks -- --filter '*' --job short`.
+
+| Ölçüm | Önce: süre | Sonra: süre | Önce: bellek | Sonra: bellek | Gen2 (önce → sonra) |
+|---|---:|---:|---:|---:|---:|
+| Feed okuma + çözme (`FetchAsync`) | 7,0 ms | 6,5 ms | 8,95 MB | 8,97 MB | 258 → 258 |
+| Yayın, 1 istemci | 959 µs | 951 µs | 776 KB | 783 KB | 138 → 136 |
+| Yayın, 10 istemci | 9,6 ms | 9,0 ms | 7,7 MB | 6,5 MB | 1.375 → 1.359 |
+| Yayın, 50 istemci | 45,4 ms | 45,5 ms | 38,8 MB | 31,5 MB | 6.818 → 6.727 |
+| `LiveVehicleState.Apply` (1.500 konum) | 256 µs | 158 µs | 112 KB | 112 KB | — |
+| `GetSnapshot`, 10 ardışık istemci | 76,7 µs | 0,05 µs | 259 KB | 0 | — |
+
+Okuma:
+- **Snapshot önbelleği:** sürüm değişmedikçe aynı görüntü döner; yeni bağlanan istemci başına ~26 KB'lık kopya gitti.
+- **Tur başına tam tarama yerine dakikada bir temizlik:** `Apply` ~%38 hızlandı. Bedeli: süresi dolan araç haritada en fazla 1 dk fazla kalır.
+- **DTO'ların bir kez üretilmesi:** 50 istemcide tur başına bellek %19 azaldı, süre değişmedi. Yayının asıl maliyeti DTO üretimi değil,
+  **her istemci için ayrı JSON serileştirme** (istemci sayısıyla doğrusal: istemci başına ~0,9 ms ve ~630 KB).
+- **Feed'in stream'den çözülmesi kazanç getirmedi:** `HttpClient` yanıtı yine tek parça tamponluyor; büyük nesne (LOH) tahsisi ve
+  Gen2 sayısı aynı kaldı. Gerçek kazanç için ağ akışını asenkron okuyup havuzdan alınan bir tampona yazmak gerekirdi.
