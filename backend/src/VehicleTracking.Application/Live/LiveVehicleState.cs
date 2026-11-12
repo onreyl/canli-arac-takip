@@ -15,10 +15,14 @@ namespace VehicleTracking.Application.Live;
 /// </remarks>
 public sealed class LiveVehicleState(IOptions<StorageOptions> storageOptions) : ILiveVehicleStore
 {
+    private static readonly TimeSpan PruneInterval = TimeSpan.FromMinutes(1);
+
     private readonly TimeSpan _retention = storageOptions.Value.Retention;
     private readonly Lock _lock = new();
     private readonly LatestByKey<VehiclePosition> _vehicles = new(position => position.MeasuredAt);
     private long _version;
+    private LiveSnapshot? _cachedSnapshot;
+    private DateTimeOffset _lastPrunedAt = DateTimeOffset.MinValue;
 
     public int Count
     {
@@ -42,8 +46,7 @@ public sealed class LiveVehicleState(IOptions<StorageOptions> storageOptions) : 
                 upserts[position.VehicleId] = position;
             }
 
-            // Son ölçümü saklama penceresinden çıkan araçları bırak; istemciler de haritadan kaldırsın.
-            IReadOnlyList<string> removals = _vehicles.RemoveOlderThan(now - _retention);
+            IReadOnlyList<string> removals = PruneIfDue(now);
 
             if (upserts.Count == 0 && removals.Count == 0)
             {
@@ -55,11 +58,31 @@ public sealed class LiveVehicleState(IOptions<StorageOptions> storageOptions) : 
         }
     }
 
+    // Araç en fazla 1 dk fazla kalır; karşılığında her 3 sn'deki tam tarama gider.
+    private IReadOnlyList<string> PruneIfDue(DateTimeOffset now)
+    {
+        if (now - _lastPrunedAt < PruneInterval)
+        {
+            return [];
+        }
+
+        IReadOnlyList<string> removals = _vehicles.RemoveOlderThan(now - _retention);
+        _lastPrunedAt = now;
+        return removals;
+    }
+
     public LiveSnapshot GetSnapshot()
     {
         lock (_lock)
         {
-            return new LiveSnapshot(_version, _vehicles.Values.ToList());
+            // Sürüm yalnızca gerçek değişiklikte artar; aynı sürümde önbellekteki görüntü geçerlidir.
+            if (_cachedSnapshot is not null && _cachedSnapshot.Version == _version)
+            {
+                return _cachedSnapshot;
+            }
+
+            _cachedSnapshot = new LiveSnapshot(_version, Array.AsReadOnly(_vehicles.Values.ToArray()));
+            return _cachedSnapshot;
         }
     }
 }
