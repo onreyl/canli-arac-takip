@@ -25,7 +25,7 @@ public sealed class VehiclesController(
     public ActionResult<LiveSnapshotMessage> GetAll()
     {
         LiveSnapshot snapshot = liveState.GetSnapshot();
-        return new LiveSnapshotMessage(snapshot.Version, snapshot.Vehicles.Select(LiveVehicleDto.From).ToList());
+        return LiveSnapshotMessage.From(snapshot);
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using VehicleTracking.Application.Common;
 using VehicleTracking.Application.Storage;
 using VehicleTracking.Domain.Vehicles;
 
@@ -15,7 +16,7 @@ public sealed class FeedIngestor(IOptions<StorageOptions> storageOptions) : IFee
     // Her varlığın en son gördüğümüz ölçüm zamanı (varlık id → zaman).
     // Bu sadece bir ön elemedir: uygulama yeniden başlayınca boşalır, o zaman DB'nin birincil anahtarı
     // (ON CONFLICT DO NOTHING) tekrarları yine engeller. Asıl "yeni mi?" otoritesi DB.
-    private readonly Dictionary<string, DateTimeOffset> _lastSeen = new();
+    private readonly LatestByKey<DateTimeOffset> _lastSeen = new(timestamp => timestamp);
     private DateTimeOffset? _lastGeneratedAt;
     private DateTimeOffset _lastPrunedAt = DateTimeOffset.MinValue;
 
@@ -39,12 +40,11 @@ public sealed class FeedIngestor(IOptions<StorageOptions> storageOptions) : IFee
                 continue;
             }
 
-            if (_lastSeen.TryGetValue(position.EntityId, out DateTimeOffset seen) && position.MeasuredAt <= seen)
+            if (!_lastSeen.TryUpdate(position.EntityId, position.MeasuredAt))
             {
                 continue;
             }
 
-            _lastSeen[position.EntityId] = position.MeasuredAt;
             newPositions.Add(position);
         }
 
@@ -61,10 +61,7 @@ public sealed class FeedIngestor(IOptions<StorageOptions> storageOptions) : IFee
         }
 
         DateTimeOffset cutoff = now - _retention;
-        foreach (string entityId in _lastSeen.Where(kv => kv.Value < cutoff).Select(kv => kv.Key).ToList())
-        {
-            _lastSeen.Remove(entityId);
-        }
+        _lastSeen.RemoveOlderThan(cutoff);
 
         _lastPrunedAt = now;
     }

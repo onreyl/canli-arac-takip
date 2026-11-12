@@ -77,7 +77,7 @@ internal sealed class LiveClientFeed : IDisposable
                 _removals = new();
                 _version = snapshot.Version;
                 method = LiveMethods.Snapshot;
-                return new LiveSnapshotMessage(snapshot.Version, snapshot.Vehicles.Select(LiveVehicleDto.From).ToList());
+                return LiveSnapshotMessage.From(snapshot);
             }
 
             var message = new LiveUpdateMessage(_version, _upserts.Values.ToList(), _removals.ToList());

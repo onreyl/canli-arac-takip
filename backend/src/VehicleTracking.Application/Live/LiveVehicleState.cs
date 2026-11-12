@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using VehicleTracking.Application.Common;
 using VehicleTracking.Application.Storage;
 using VehicleTracking.Domain.Vehicles;
 
@@ -16,7 +17,7 @@ public sealed class LiveVehicleState(IOptions<StorageOptions> storageOptions) : 
 {
     private readonly TimeSpan _retention = storageOptions.Value.Retention;
     private readonly Lock _lock = new();
-    private readonly Dictionary<string, VehiclePosition> _vehicles = new();
+    private readonly LatestByKey<VehiclePosition> _vehicles = new(position => position.MeasuredAt);
     private long _version;
 
     public int Count
@@ -33,25 +34,16 @@ public sealed class LiveVehicleState(IOptions<StorageOptions> storageOptions) : 
             var upserts = new Dictionary<string, VehiclePosition>();
             foreach (VehiclePosition position in positions)
             {
-                if (_vehicles.TryGetValue(position.VehicleId, out VehiclePosition? current)
-                    && position.MeasuredAt <= current.MeasuredAt)
+                if (!_vehicles.TryUpdate(position.VehicleId, position))
                 {
                     continue;
                 }
 
-                _vehicles[position.VehicleId] = position;
                 upserts[position.VehicleId] = position;
             }
 
             // Son ölçümü saklama penceresinden çıkan araçları bırak; istemciler de haritadan kaldırsın.
-            List<string> removals = _vehicles
-                .Where(kv => !kv.Value.IsWithinRetention(now, _retention))
-                .Select(kv => kv.Key)
-                .ToList();
-            foreach (string vehicleId in removals)
-            {
-                _vehicles.Remove(vehicleId);
-            }
+            IReadOnlyList<string> removals = _vehicles.RemoveOlderThan(now - _retention);
 
             if (upserts.Count == 0 && removals.Count == 0)
             {
