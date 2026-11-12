@@ -146,7 +146,7 @@ Feature'lar birbirini yalnızca `index.ts` üzerinden kullanır. Kararların ger
 | **Bozuk yanıt** (protobuf çözülemiyor / HTTP hatası) | Tur atlanır, başarısız okuma sayılır. | O turun verisi (kaynak kesintisiyle aynı). | Bozuk veri DB'ye ve canlı duruma hiç girmez. |
 | **DB birkaç dakika kapalı** | Toplama ve **canlı harita devam eder**. Partiler bellek tamponunda bekler, yazıcı tekrar dener. Geçmiş uç noktası 503 döner. | Yok (tampon kapasitesi ~50 dk). | DB dönünce bekleyenler yazılır; yazma idempotent, yarım kalan deneme çift kayıt üretmez. |
 | **Uygulama çalışırken yeniden başlatılır** (düzgün kapanış) | Önce çekme durur, sonra yazıcı tamponu boşaltır (20 sn ≤ host 25 sn ≤ Docker 30 sn). | Uygulamanın kapalı kaldığı birkaç saniye (önlenemez, kaynak geçmiş tutmaz). | Tampondakiler yazılır; açılışta ilk okumayla canlı durum geri gelir. |
-| **Ani çökme** ya da **DB kapalıyken yeniden başlatma** | Bellek tamponu kaybolur. | Tampondaki partiler: DB sağlıklıyken son birkaç saniye, DB kapalıyken birikenler. **Bilinen eksik.** | Canlı durum ilk okumada geri gelir. Önlemi: disk tamponu ya da kalıcı kuyruk (bkz. [bilinen eksikler](#e-bilinen-eksikler-daha-fazla-zaman-olsaydı)). |
+| **Ani çökme** ya da **DB kapalıyken yeniden başlatma** | Bellek tamponu kaybolur. | Tampondaki partiler: DB sağlıklıyken son birkaç saniye, DB kapalıyken birikenler. **Bilinen eksik.** | Canlı durum ilk okumada geri gelir. Önlemi: disk tamponu ya da kalıcı kuyruk (bkz. [docs/known-limitations.md](docs/known-limitations.md)). |
 | **DB ~50 dk'dan uzun kapalı** | Tampon dolar, en eski parti atılır, sayılır ve loglanır (`droppedBatchCount`). | Atılan partiler. | Çekme ve canlı yayın durmaz (tampon dolunca çekmeyi durdurmak haritayı da dondururdu). |
 | **WebSocket istemcisi kopar** | Rozet "yeniden bağlanıyor" → "koptu"; harita son bilinen konumlarla kalır, otomatik yeniden bağlanır. | Yok. | Yeniden bağlanınca yeni `snapshot` elindeki listenin yerine geçer; arada kaçan önemsizdir. |
 | **WebSocket istemcisi çok yavaş okur** | Yalnızca kendi gönderim döngüsü bekler; diğer istemciler ve veri toplama etkilenmez. | O istemci aynı aracın **ara** konumlarını atlar (bilinçli). | Bekleyenler araç kimliğine göre birleşir; son konum her zaman gider, bellek araç sayısıyla sınırlı. |
@@ -213,7 +213,7 @@ Gerçek değer bu ikisinin arasında olmalı (gece hacmi ölçülmedi). Yaklaş�
 veri büyüdükçe pahalılaşmaz, geçmiş sorgusu `(vehicle_id, measured_at)` index'i ve zaman aralığı sayesinde sadece ilgili chunk'lara
 bakar. **Değişmesi gerekenler:** TimescaleDB **sıkıştırması** (ör. birkaç saatten eski chunk'lar sütun bazlı sıkıştırılır; bu tür
 tekrarlı veride kazancın büyük olması beklenir ama bu projede **ölçülmedi**), disk planlaması, daha büyük chunk aralığı (10 günde
-15 dk'lık chunk ~960 parça eder; ör. 1 saatlik chunk daha uygun) ve satırı küçültmek (en büyük sütun `entity_id`, ~60 byte; bkz. e).
+15 dk'lık chunk ~960 parça eder; ör. 1 saatlik chunk daha uygun) ve satırı küçültmek (en büyük sütun `entity_id`, ~60 byte).
 
 ### b) Hangi durumlarda veri kaybı olabilir, nasıl önlendi?
 
@@ -233,7 +233,7 @@ tekrarlı veride kazancın büyük olması beklenir ama bu projede **ölçülmed
   bekler, o süre toplanmaz.
 - **Tampon taşması:** DB ~50 dk'dan uzun kapalı kalırsa en eski partiler atılır (sayılır, loglanır).
 
-Neden kabul edildi ve nasıl önlenirdi: [bilinen eksikler](#e-bilinen-eksikler-daha-fazla-zaman-olsaydı), [docs/known-limitations.md](docs/known-limitations.md).
+Neden kabul edildi ve nasıl önlenirdi: [docs/known-limitations.md](docs/known-limitations.md).
 
 ### c) Canlı veri istemcide nerede tutuluyor, neden?
 
@@ -262,23 +262,6 @@ başına en fazla bir kez toplu günceller; ~3.000 aracın her değişikliği Re
 | Arayüzde bir güncellemenin işlenme süresi (store + GeoJSON + `setData`) | ~1-4 ms | 15 Ekim, ~2.300 araç; rozette canlı gösteriliyor |
 
 Hacim günün saatine göre ~3 kat değişiyor; tasarım yoğun saate göre yapıldı. Yoğun saat ölçümü sırasında 70 dakikada 0 hata, 0 kayıp parti.
-
-### e) Bilinen eksikler; daha fazla zaman olsaydı
-
-- **Disk tamponu yok.** Ani çökmede ya da DB kapalıyken yeniden başlatmada bellek tamponundakiler kaybolur. Neden kabul edilebilir:
-  GTFS-RT her okumada tam güncel durumu gönderir; uygulama açılınca canlı durum ilk okumada geri gelir, kaybolan sadece birkaç saniyelik
-  ara konumlardır. Daha fazla zamanla: her yeni feed önce diske yazılıp DB'ye yazılınca silinirdi (tampon `IFeedBuffer` arkasında olduğu
-  için yazıcı ve çekici değişmezdi) ya da RabbitMQ/Kafka gibi kalıcı bir kuyruk kullanılırdı.
-- **Açılışta DB yoksa toplama başlamaz** (Compose'da healthcheck sayesinde ilk açılışta sorun olmaz).
-- **"Son 1 saatte yazılan" sayacı bellekte;** uygulama yeniden başlayınca sıfırdan başlar.
-- **Sıkıştırma ve satır boyutu:** TimescaleDB sıkıştırması açılmadı; `entity_id` (`sefer + tarih + araç`) satırın en büyük sütunu, kısa
-  bir anahtarla satır başına ~60 byte kazanılırdı.
-- **Yavaş istemci gerçek ağda sınırlı denendi:** birleştirme birim testli; yerelde işletim sisteminin TCP tamponları büyük olduğu için
-  sunucu tarafı birleştirme ancak tamponlar dolunca devreye giriyor.
-- **Kapsam dışı bırakılan artı puan maddeleri** (öncelik zorunlu maddelere verildi): Service Alerts, Trip Updates, statik GTFS ile hat/durak
-  adları (şu an kimlikler gösteriliyor), Testcontainers entegrasyon testleri, frontend testleri, mimari kuralların otomatik zorlanması, JWT.
-  Yapılanlar: backend birim testleri (86), health check uçları.
-- **Geçmiş aralığı** serbest başlangıç/bitiş yerine hazır seçenekler (son 15 dk / 30 dk / 1 saat / 3 saat).
 
 ## Dokümanlar
 
