@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddSingleton(TimeProvider.System);
 
         services.AddSingleton<IFeedIngestor, FeedIngestor>();
+        services.AddSingleton<IFeedIngestionCycle, FeedIngestionCycle>();
         services.AddSingleton<IIngestionMetrics, IngestionMetrics>();
         services.AddSingleton<ILiveVehicleStore, LiveVehicleState>();
 
