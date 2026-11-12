@@ -184,3 +184,8 @@ Okuma:
   **her istemci için ayrı JSON serileştirme** (istemci sayısıyla doğrusal: istemci başına ~0,9 ms ve ~630 KB).
 - **Feed'in stream'den çözülmesi kazanç getirmedi:** `HttpClient` yanıtı yine tek parça tamponluyor; büyük nesne (LOH) tahsisi ve
   Gen2 sayısı aynı kaldı. Gerçek kazanç için ağ akışını asenkron okuyup havuzdan alınan bir tampona yazmak gerekirdi.
+- **Karar: serileştirme istemciler arasında paylaşılmadı.** SignalR'ın çoklu gönderimi (`Clients.Clients(...)`) mesajı bir kez
+  serileştirir ama bütün alıcıların yazmasını birlikte bekler; bu, dokümanın "yavaş istemci diğerlerini etkilemesin" şartını bozar.
+  Ayrıca birleştirme yüzünden yavaş istemcinin bekleyen paketi diğerlerinden farklı, aynı mesajı paylaşamaz. "Yetişmiş" istemcileri
+  gruplayıp tek mesaj göndermek mümkün ama sıralama riski ve karmaşıklık getirir. Ölçülen maliyet kabul edilebilir: 50 istemcide tur
+  başına ~45 ms; bu iş istemcilerin kendi gönderim döngülerine dağılıyor ve 3 sn'lik çekme döngüsünü beklemiyor.
