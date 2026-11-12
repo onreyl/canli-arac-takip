@@ -14,8 +14,8 @@ namespace VehicleTracking.Api.Realtime;
 /// </remarks>
 public sealed partial class LiveUpdateDispatcher(
     IHubContext<VehiclesHub> hubContext,
-    LiveVehicleState liveState,
-    ILogger<LiveUpdateDispatcher> logger) : ILiveUpdatePublisher, IDisposable
+    ILiveVehicleStore liveState,
+    ILogger<LiveUpdateDispatcher> logger) : ILiveUpdatePublisher, ILiveConnectionRegistry, IDisposable
 {
     private readonly ConcurrentDictionary<string, LiveClientFeed> _clients = new();
 

@@ -12,7 +12,7 @@ namespace VehicleTracking.Application.Live;
 /// Çekme döngüsü yazar, SignalR ve REST okur (farklı iş parçacıkları) → kilitli.
 /// Uygulama açılınca boştur; ilk turda feed'deki son 3 saatin tüm konumlarıyla dolar.
 /// </remarks>
-public sealed class LiveVehicleState(IOptions<StorageOptions> storageOptions)
+public sealed class LiveVehicleState(IOptions<StorageOptions> storageOptions) : ILiveVehicleStore
 {
     private readonly TimeSpan _retention = storageOptions.Value.Retention;
     private readonly Lock _lock = new();

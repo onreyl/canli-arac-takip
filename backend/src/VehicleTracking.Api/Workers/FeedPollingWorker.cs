@@ -11,11 +11,11 @@ namespace VehicleTracking.Api.Workers;
 /// </summary>
 internal sealed partial class FeedPollingWorker(
     IFeedSource feedSource,
-    FeedIngestor ingestor,
+    IFeedIngestor ingestor,
     IFeedBuffer buffer,
-    LiveVehicleState liveState,
+    ILiveVehicleStore liveState,
     ILiveUpdatePublisher publisher,
-    IngestionMetrics metrics,
+    IIngestionMetrics metrics,
     TimeProvider timeProvider,
     IOptions<IngestionOptions> options,
     ILogger<FeedPollingWorker> logger) : BackgroundService

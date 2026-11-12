@@ -64,7 +64,7 @@ internal sealed class LiveClientFeed : IDisposable
         return true;
     }
 
-    public object TakePending(LiveVehicleState liveState, out string method)
+    public object TakePending(ILiveVehicleStore liveState, out string method)
     {
         lock (_lock)
         {

@@ -6,7 +6,7 @@ namespace VehicleTracking.Api.Realtime;
 /// İstemcilerin bağlandığı nokta (/hubs/vehicles). Sadece sunucudan istemciye yayın yapıyoruz, istemcinin
 /// çağırdığı bir metot yok. Bağlanan her istemci dağıtıcıya kaydolur; ilk mesajı tam görüntü olur.
 /// </summary>
-public sealed class VehiclesHub(LiveUpdateDispatcher dispatcher) : Hub
+public sealed class VehiclesHub(ILiveConnectionRegistry dispatcher) : Hub
 {
     public override Task OnConnectedAsync()
     {

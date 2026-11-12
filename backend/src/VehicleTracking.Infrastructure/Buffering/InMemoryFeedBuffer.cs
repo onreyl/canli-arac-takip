@@ -19,7 +19,7 @@ internal sealed partial class InMemoryFeedBuffer : IFeedBuffer
 {
     private readonly Channel<PositionBatch> _channel;
 
-    public InMemoryFeedBuffer(IOptions<IngestionOptions> options, IngestionMetrics metrics, ILogger<InMemoryFeedBuffer> logger)
+    public InMemoryFeedBuffer(IOptions<IngestionOptions> options, IIngestionMetrics metrics, ILogger<InMemoryFeedBuffer> logger)
     {
         // DropOldest: tampon doluyken çekmeyi durdurmak (Wait) canlı haritayı da dondururdu.
         // En eskiyi atıp en yeniyi tutmayı seçiyoruz; atılan her parti kayıp olarak sayılır.

@@ -12,7 +12,7 @@ namespace VehicleTracking.Api.Controllers;
 [Route("api/vehicles")]
 [Produces("application/json")]
 public sealed class VehiclesController(
-    LiveVehicleState liveState,
+    ILiveVehicleStore liveState,
     IVehicleHistoryReader historyReader,
     IOptions<StorageOptions> storageOptions,
     TimeProvider timeProvider) : ControllerBase

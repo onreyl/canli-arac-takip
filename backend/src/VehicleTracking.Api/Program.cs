@@ -34,6 +34,7 @@ builder.Services.AddSignalR()
     .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddSingleton<LiveUpdateDispatcher>();
 builder.Services.AddSingleton<ILiveUpdatePublisher>(sp => sp.GetRequiredService<LiveUpdateDispatcher>());
+builder.Services.AddSingleton<ILiveConnectionRegistry>(sp => sp.GetRequiredService<LiveUpdateDispatcher>());
 
 // REST'te de enum'lar metin olarak (SignalR ile tutarlı).
 builder.Services.AddControllers()

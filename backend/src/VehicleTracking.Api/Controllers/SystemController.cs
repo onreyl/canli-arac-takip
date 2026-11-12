@@ -10,10 +10,10 @@ namespace VehicleTracking.Api.Controllers;
 [Route("api/system")]
 [Produces("application/json")]
 public sealed class SystemController(
-    IngestionMetrics metrics,
+    IIngestionMetrics metrics,
     IFeedBuffer buffer,
-    LiveVehicleState liveState,
-    LiveUpdateDispatcher dispatcher) : ControllerBase
+    ILiveVehicleStore liveState,
+    ILiveConnectionRegistry dispatcher) : ControllerBase
 {
     /// <summary>Sistem durumu: veri toplama ve canlı yayının sağlığı.</summary>
     /// <remarks>

@@ -8,7 +8,7 @@ namespace VehicleTracking.Application.Ingestion;
 /// "Bu feed'den neyi yazmalıyız?" kararını verir. Durum tutar, bu yüzden singleton.
 /// Sadece çekme döngüsü çağırır (tek iş parçacığı), kilit gerekmez.
 /// </summary>
-public sealed class FeedIngestor(IOptions<StorageOptions> storageOptions)
+public sealed class FeedIngestor(IOptions<StorageOptions> storageOptions) : IFeedIngestor
 {
     private readonly TimeSpan _retention = storageOptions.Value.Retention;
 

@@ -16,9 +16,9 @@ public static class DependencyInjection
         // TimeProvider: "şu an" bilgisini enjekte ediyoruz ki testlerde zamanı kontrol edebilelim.
         services.AddSingleton(TimeProvider.System);
 
-        services.AddSingleton<FeedIngestor>();
-        services.AddSingleton<IngestionMetrics>();
-        services.AddSingleton<LiveVehicleState>();
+        services.AddSingleton<IFeedIngestor, FeedIngestor>();
+        services.AddSingleton<IIngestionMetrics, IngestionMetrics>();
+        services.AddSingleton<ILiveVehicleStore, LiveVehicleState>();
 
         return services;
     }

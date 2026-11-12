@@ -4,7 +4,7 @@ namespace VehicleTracking.Application.Ingestion;
 /// Çekme ve yazma sayaçları. Çekme ve yazma ayrı iş parçacıklarında çalıştığı (ve API de okuduğu) için kilitli.
 /// Sayaçlar bellekte: uygulama yeniden başlayınca sıfırlanır.
 /// </summary>
-public sealed class IngestionMetrics(TimeProvider timeProvider)
+public sealed class IngestionMetrics(TimeProvider timeProvider) : IIngestionMetrics
 {
     private readonly Lock _lock = new();
     private readonly Queue<(DateTimeOffset At, int Count, TimeSpan Duration)> _writes = new();

@@ -10,7 +10,7 @@ namespace VehicleTracking.Api.Workers;
 internal sealed partial class PositionWriterWorker(
     IFeedBuffer buffer,
     IPositionWriter writer,
-    IngestionMetrics metrics,
+    IIngestionMetrics metrics,
     ILogger<PositionWriterWorker> logger) : BackgroundService
 {
     private static readonly TimeSpan InitialRetryDelay = TimeSpan.FromSeconds(1);

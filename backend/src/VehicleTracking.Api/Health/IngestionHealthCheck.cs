@@ -4,7 +4,7 @@ using VehicleTracking.Application.Ingestion;
 namespace VehicleTracking.Api.Health;
 
 internal sealed class IngestionHealthCheck(
-    IngestionMetrics metrics,
+    IIngestionMetrics metrics,
     IFeedBuffer buffer,
     TimeProvider timeProvider) : IHealthCheck
 {
