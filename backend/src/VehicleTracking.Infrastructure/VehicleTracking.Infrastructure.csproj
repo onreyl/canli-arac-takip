@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\VehicleTracking.Application\VehicleTracking.Application.csproj" />
@@ -30,5 +30,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Ölçüm projesi iç sınıfları (EnturFeedSource vb.) doğrudan çalıştırabilsin. -->
+    <InternalsVisibleTo Include="VehicleTracking.Benchmarks" />
+  </ItemGroup>
 
 </Project>

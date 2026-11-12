@@ -495,3 +495,8 @@ tmp/
 CLAUDE.md
 /AGENTS.md
 docs/backend-review.md
+
+# Benchmark için indirilen örnek feed (Entur verisi; repoya girmez, Program.cs yoksa indirir)
+backend/benchmarks/VehicleTracking.Benchmarks/data/
+# BenchmarkDotNet çıktıları
+BenchmarkDotNet.Artifacts/

@@ -27,6 +27,7 @@
   <ItemGroup>
     <!-- Birim testleri internal sınıfları (ör. birleştirme mantığı, imleç kodlama) doğrudan test edebilsin. -->
     <InternalsVisibleTo Include="VehicleTracking.UnitTests" />
+    <InternalsVisibleTo Include="VehicleTracking.Benchmarks" />
   </ItemGroup>
 
 </Project>
