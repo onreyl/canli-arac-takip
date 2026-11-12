@@ -1,16 +1,5 @@
 namespace VehicleTracking.Application.Ingestion;
 
-/// <summary>Sistem durumu ekranı için sayaçların anlık kopyası.</summary>
-public sealed record IngestionMetricsSnapshot(
-    DateTimeOffset? LastSuccessfulFetchAt,
-    TimeSpan? LastFetchDuration,
-    long FailedFetchCount,
-    long FailedWriteCount,
-    long WrittenLastHour,
-    long DroppedBatchCount,
-    TimeSpan? LastWriteDuration,
-    TimeSpan? MaxWriteDurationLastHour);
-
 /// <summary>
 /// Çekme ve yazma sayaçları. Çekme ve yazma ayrı iş parçacıklarında çalıştığı (ve API de okuduğu) için kilitli.
 /// Sayaçlar bellekte: uygulama yeniden başlayınca sıfırlanır.

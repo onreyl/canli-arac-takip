@@ -4,15 +4,6 @@ using VehicleTracking.Domain.Vehicles;
 
 namespace VehicleTracking.Application.Live;
 
-/// <summary>Tüm araçların o anki görüntüsü. Version: bu görüntünün hangi değişiklikten sonra alındığı.</summary>
-public sealed record LiveSnapshot(long Version, IReadOnlyList<VehiclePosition> Vehicles);
-
-/// <summary>Bir turdaki değişiklik: güncellenen araçlar ve artık izlenmeyenler.</summary>
-public sealed record LiveUpdate(long Version, IReadOnlyList<VehiclePosition> Upserts, IReadOnlyList<string> Removals)
-{
-    public bool IsEmpty => Upserts.Count == 0 && Removals.Count == 0;
-}
-
 /// <summary>
 /// Bellekte her aracın son konumu (canlı yayın DB'den bağımsız; DB kapalıyken de harita akar).
 /// Anahtar araç kimliği: feed'de aynı araç birden çok varlık olarak geliyor, haritada ise tek işaret olmalı.

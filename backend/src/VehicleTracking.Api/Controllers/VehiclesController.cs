@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using VehicleTracking.Api.Contracts;
 using VehicleTracking.Api.Realtime;
 using VehicleTracking.Application.History;
 using VehicleTracking.Application.Live;
 using VehicleTracking.Application.Storage;
-using VehicleTracking.Domain.Vehicles;
 
 namespace VehicleTracking.Api.Controllers;
 
@@ -94,24 +94,3 @@ public sealed class VehiclesController(
             page.Next is null ? null : HistoryCursorCodec.Encode(page.Next));
     }
 }
-
-/// <summary>Geçmişteki bir nokta.</summary>
-public sealed record HistoryPointDto(
-    DateTimeOffset MeasuredAt,
-    float Latitude,
-    float Longitude,
-    float? Bearing,
-    float? Speed,
-    string? RouteId,
-    string? TripId,
-    string? StopId,
-    VehicleStopStatus? Status,
-    OccupancyStatus? Occupancy)
-{
-    public static HistoryPointDto From(VehiclePosition p) => new(
-        p.MeasuredAt, p.Latitude, p.Longitude, p.Bearing, p.Speed,
-        p.RouteId, p.TripId, p.StopId, p.CurrentStatus, p.Occupancy);
-}
-
-/// <summary>Bir sayfa geçmiş. NextCursor null ise son sayfa.</summary>
-public sealed record HistoryPageResponse(IReadOnlyList<HistoryPointDto> Items, string? NextCursor);

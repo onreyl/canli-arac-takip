@@ -1,15 +1,4 @@
-using VehicleTracking.Domain.Vehicles;
-
 namespace VehicleTracking.Application.History;
-
-/// <summary>
-/// Keyset sayfalamada "kaldığımız yer": bir önceki sayfanın son satırı.
-/// Zaman tek başına yetmez (aynı araç aynı saniyede iki varlıkla gelebilir), varlık kimliği eşitliği bozar.
-/// </summary>
-public sealed record HistoryCursor(DateTimeOffset MeasuredAt, string EntityId);
-
-/// <summary>Bir sayfa geçmiş. Next null ise son sayfa.</summary>
-public sealed record HistoryPage(IReadOnlyList<VehiclePosition> Items, HistoryCursor? Next);
 
 /// <summary>Bir aracın kalıcı depodaki konum geçmişi.</summary>
 public interface IVehicleHistoryReader
