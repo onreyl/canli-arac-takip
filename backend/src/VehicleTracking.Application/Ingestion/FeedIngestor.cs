@@ -11,6 +11,8 @@ namespace VehicleTracking.Application.Ingestion;
 /// </summary>
 public sealed class FeedIngestor(IOptions<StorageOptions> storageOptions) : IFeedIngestor
 {
+    private static readonly TimeSpan PruneInterval = TimeSpan.FromMinutes(1);
+
     private readonly TimeSpan _retention = storageOptions.Value.Retention;
 
     // Her varlığın en son gördüğümüz ölçüm zamanı (varlık id → zaman).
@@ -55,7 +57,7 @@ public sealed class FeedIngestor(IOptions<StorageOptions> storageOptions) : IFee
     // Varlık kimliği "sefer-tarih-araç"; her gün yenileri eklenir. Pencere dışına çıkanları atmazsak sözlük sonsuza dek büyür.
     private void PruneIfDue(DateTimeOffset now)
     {
-        if (now - _lastPrunedAt < TimeSpan.FromMinutes(1))
+        if (now - _lastPrunedAt < PruneInterval)
         {
             return;
         }

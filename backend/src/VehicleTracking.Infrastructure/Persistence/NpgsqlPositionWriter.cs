@@ -13,6 +13,10 @@ namespace VehicleTracking.Infrastructure.Persistence;
 /// </summary>
 internal sealed class NpgsqlPositionWriter(NpgsqlDataSource dataSource) : IPositionWriter
 {
+    // PostgreSQL hata sınıfları kalıcı veri hatalarını geçici bağlantı hatalarından ayırır.
+    private const string DataExceptionClass = "22";
+    private const string IntegrityConstraintViolationClass = "23";
+
     // Sütun sırası unnest'teki dizi sırasıyla birebir aynı olmalı.
     // ON CONFLICT DO NOTHING: birincil anahtar (entity_id, measured_at) zaten varsa satır sessizce atlanır.
     private const string InsertSql = """
@@ -94,6 +98,6 @@ internal sealed class NpgsqlPositionWriter(NpgsqlDataSource dataSource) : IPosit
     // SQLSTATE 22xxx (veri hatası) ve 23xxx (kısıt ihlali): aynı veriyle kaç kez denense de başarısız olur.
     // Bunları geçici sayarsak tek bir bozuk parti yazıcıyı sonsuz döngüye sokar, arkasındaki her şey birikir.
     private static bool IsPermanentDataError(NpgsqlException ex) =>
-        ex is PostgresException pg && (pg.SqlState.StartsWith("22", StringComparison.Ordinal)
-                                    || pg.SqlState.StartsWith("23", StringComparison.Ordinal));
+        ex is PostgresException pg && (pg.SqlState.StartsWith(DataExceptionClass, StringComparison.Ordinal)
+                                    || pg.SqlState.StartsWith(IntegrityConstraintViolationClass, StringComparison.Ordinal));
 }

@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using VehicleTracking.Api.Contracts;
 using VehicleTracking.Api.Realtime;
 using VehicleTracking.Application.History;
 using VehicleTracking.Application.Live;
-using VehicleTracking.Application.Storage;
 
 namespace VehicleTracking.Api.Controllers;
 
@@ -13,13 +10,8 @@ namespace VehicleTracking.Api.Controllers;
 [Produces("application/json")]
 public sealed class VehiclesController(
     ILiveVehicleStore liveState,
-    IVehicleHistoryReader historyReader,
-    IOptions<StorageOptions> storageOptions,
-    TimeProvider timeProvider) : ControllerBase
+    IHistoryQueryService historyService) : ControllerBase
 {
-    private const int DefaultPageSize = 200;
-    private const int MaxPageSize = 1000;
-
     /// <summary>Tüm araçların anlık durumu (bellekten; SignalR'daki ilk görüntünün aynısı).</summary>
     [HttpGet]
     public ActionResult<LiveSnapshotMessage> GetAll()
@@ -29,7 +21,7 @@ public sealed class VehiclesController(
     }
 
     /// <summary>
-    /// Aracın konum geçmişi, en yeniden eskiye, sayfalı. Yalnızca saklama penceresi (son 3 saat) içinden.
+    /// Aracın konum geçmişi, en yeniden eskiye, sayfalı. Yalnızca saklama penceresi (Storage:Retention, varsayılan 3 saat) içinden.
     /// </summary>
     /// <param name="vehicleId">Araç kimliği.</param>
     /// <param name="from">Başlangıç (dahil). Boşsa: to - 1 saat.</param>
@@ -47,50 +39,15 @@ public sealed class VehiclesController(
         string vehicleId,
         [FromQuery] DateTimeOffset? from,
         [FromQuery] DateTimeOffset? to,
-        [FromQuery] int pageSize = DefaultPageSize,
+        [FromQuery] int pageSize = HistoryOptions.DefaultPageSizeValue,
         [FromQuery] string? cursor = null,
         CancellationToken cancellationToken = default)
     {
-        DateTimeOffset now = timeProvider.GetUtcNow();
-        DateTimeOffset windowStart = now - storageOptions.Value.Retention;
-        DateTimeOffset end = to ?? now;
-        DateTimeOffset start = from ?? end.AddHours(-1);
+        HistoryQueryResult result = await historyService.QueryAsync(
+            new HistoryQuery(vehicleId, from, to, pageSize, cursor), cancellationToken);
+        if (result.Errors is { } errors)
+            return ValidationProblem(new ValidationProblemDetails(errors));
 
-        // Saklama penceresinin dışı zaten silinmiş (ya da silinmek üzere); oraya sorgu kabul etmiyoruz.
-        // 1 dk tolerans: istemcinin saati ile sunucununki arasındaki küçük farklar yüzünden hata vermeyelim.
-        if (start < windowStart - TimeSpan.FromMinutes(1))
-        {
-            ModelState.AddModelError(nameof(from), "Başlangıç saklama penceresinin (son 3 saat) dışında.");
-        }
-
-        if (end <= start)
-        {
-            ModelState.AddModelError(nameof(to), "Bitiş başlangıçtan sonra olmalı.");
-        }
-
-        if (pageSize is < 1 or > MaxPageSize)
-        {
-            ModelState.AddModelError(nameof(pageSize), $"Sayfa boyutu 1 ile {MaxPageSize} arasında olmalı.");
-        }
-
-        HistoryCursor? after = null;
-        if (cursor is not null && !HistoryCursorCodec.TryDecode(cursor, out after))
-        {
-            ModelState.AddModelError(nameof(cursor), "Geçersiz imleç.");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            return ValidationProblem(ModelState);
-        }
-
-        // Pencere başından eskisini istese bile (tolerans içinde) pencereye kırpıyoruz:
-        // chunk bütün olarak silindiği için DB'de 3 saatten biraz eski satır kalabilir, kullanıcı görmemeli.
-        start = start < windowStart ? windowStart : start;
-
-        HistoryPage page = await historyReader.GetPageAsync(vehicleId, start, end, pageSize, after, cancellationToken);
-        return new HistoryPageResponse(
-            page.Items.Select(HistoryPointDto.From).ToList(),
-            page.Next is null ? null : HistoryCursorCodec.Encode(page.Next));
+        return result.Page!;
     }
 }

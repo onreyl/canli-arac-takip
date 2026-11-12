@@ -1,6 +1,6 @@
 using VehicleTracking.Domain.Vehicles;
 
-namespace VehicleTracking.Api.Contracts;
+namespace VehicleTracking.Application.History;
 
 /// <summary>Geçmişteki bir nokta.</summary>
 public sealed record HistoryPointDto(
@@ -15,6 +15,7 @@ public sealed record HistoryPointDto(
     VehicleStopStatus? Status,
     OccupancyStatus? Occupancy)
 {
+    /// <summary>Kalıcı konumu geçmiş yanıtına dönüştürür.</summary>
     public static HistoryPointDto From(VehiclePosition p) => new(
         p.MeasuredAt, p.Latitude, p.Longitude, p.Bearing, p.Speed,
         p.RouteId, p.TripId, p.StopId, p.CurrentStatus, p.Occupancy);

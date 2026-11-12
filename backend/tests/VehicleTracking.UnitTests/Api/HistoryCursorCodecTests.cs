@@ -1,6 +1,5 @@
 using System.Buffers.Text;
 using System.Text;
-using VehicleTracking.Api.Controllers;
 using VehicleTracking.Application.History;
 
 namespace VehicleTracking.UnitTests.Api;
@@ -27,6 +26,21 @@ public sealed class HistoryCursorCodecTests
     public void TryDecode_InvalidText_ReturnsFalse(string value)
     {
         bool success = HistoryCursorCodec.TryDecode(value, out var cursor);
+
+        Assert.False(success);
+        Assert.Null(cursor);
+    }
+
+    [Theory]
+    [InlineData("253402300800000")]
+    [InlineData("9223372036854775807")]
+    [InlineData("-62135596800001")]
+    [InlineData("-9223372036854775808")]
+    public void TryDecode_OutOfRangeTimestamp_ReturnsFalse(string timestamp)
+    {
+        string encoded = Base64Url.EncodeToString(Encoding.UTF8.GetBytes($"{timestamp}|entity"));
+
+        bool success = HistoryCursorCodec.TryDecode(encoded, out var cursor);
 
         Assert.False(success);
         Assert.Null(cursor);

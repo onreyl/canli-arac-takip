@@ -1,5 +1,7 @@
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VehicleTracking.Application.History;
 using VehicleTracking.Application.Ingestion;
 using VehicleTracking.Application.Live;
 using VehicleTracking.Application.Storage;
@@ -12,6 +14,10 @@ public static class DependencyInjection
     {
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
         services.Configure<IngestionOptions>(configuration.GetSection(IngestionOptions.SectionName));
+
+        services.Configure<HistoryOptions>(configuration.GetSection(HistoryOptions.SectionName));
+        services.AddSingleton<IValidator<ResolvedHistoryQuery>, HistoryQueryValidator>();
+        services.AddScoped<IHistoryQueryService, HistoryQueryService>();
 
         // TimeProvider: "şu an" bilgisini enjekte ediyoruz ki testlerde zamanı kontrol edebilelim.
         services.AddSingleton(TimeProvider.System);

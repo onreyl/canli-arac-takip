@@ -1,3 +1,4 @@
+using VehicleTracking.Application.Common;
 using System.Data.Common;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -37,8 +38,8 @@ internal sealed partial class DatabaseUnavailableExceptionHandler(
                 ProblemDetails = new ProblemDetails
                 {
                     Status = StatusCodes.Status503ServiceUnavailable,
-                    Title = "Veritabanına şu an ulaşılamıyor",
-                    Detail = "Geçmiş verisi geçici olarak kullanılamıyor; lütfen biraz sonra tekrar deneyin."
+                    Title = UserMessages.DatabaseUnavailableTitle,
+                    Detail = UserMessages.DatabaseUnavailableDetail
                 }
             });
             return true;
