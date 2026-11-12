@@ -183,7 +183,8 @@ Okuma:
 - **DTO'ların bir kez üretilmesi:** 50 istemcide tur başına bellek %19 azaldı, süre değişmedi. Yayının asıl maliyeti DTO üretimi değil,
   **her istemci için ayrı JSON serileştirme** (istemci sayısıyla doğrusal: istemci başına ~0,9 ms ve ~630 KB).
 - **Feed'in stream'den çözülmesi kazanç getirmedi:** `HttpClient` yanıtı yine tek parça tamponluyor; büyük nesne (LOH) tahsisi ve
-  Gen2 sayısı aynı kaldı. Gerçek kazanç için ağ akışını asenkron okuyup havuzdan alınan bir tampona yazmak gerekirdi.
+  Gen2 sayısı aynı kaldı; değişiklik bu yüzden geri alındı (`GetByteArrayAsync` kaldı). Gerçek kazanç için ağ akışını asenkron
+  okuyup havuzdan alınan bir tampona yazmak gerekirdi.
 - **Karar: serileştirme istemciler arasında paylaşılmadı.** SignalR'ın çoklu gönderimi (`Clients.Clients(...)`) mesajı bir kez
   serileştirir ama bütün alıcıların yazmasını birlikte bekler; bu, dokümanın "yavaş istemci diğerlerini etkilemesin" şartını bozar.
   Ayrıca birleştirme yüzünden yavaş istemcinin bekleyen paketi diğerlerinden farklı, aynı mesajı paylaşamaz. "Yetişmiş" istemcileri
